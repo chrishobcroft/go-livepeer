@@ -374,7 +374,7 @@ func (s *stubSenderMonitor) MaxFloat(addr ethcommon.Address) (*big.Int, error) {
 
 func (s *stubSenderMonitor) ValidateSender(addr ethcommon.Address) error { return s.validateSenderErr }
 
-func (s *stubSenderMonitor) MonitorMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
+func (s *stubSenderMonitor) SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
 	return nil
 }
 

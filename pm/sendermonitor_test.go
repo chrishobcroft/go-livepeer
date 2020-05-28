@@ -701,7 +701,7 @@ func TestMonitorMaxFloat(t *testing.T) {
 	require := require.New(t)
 
 	sink := make(chan *big.Int, 10)
-	sub := sm.MonitorMaxFloat(addr, sink)
+	sub := sm.SubscribeMaxFloat(addr, sink)
 	defer sub.Unsubscribe()
 
 	amount := big.NewInt(100)

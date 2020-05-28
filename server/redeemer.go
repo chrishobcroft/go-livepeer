@@ -117,7 +117,7 @@ func (r *redeemer) monitorMaxFloat(sender ethcommon.Address) {
 	}
 	r.liveSenders.Store(sender, time.Now())
 	sink := make(chan *big.Int, 10)
-	sub := r.sm.MonitorMaxFloat(sender, sink)
+	sub := r.sm.SubscribeMaxFloat(sender, sink)
 	defer sub.Unsubscribe()
 	for {
 		select {
@@ -322,7 +322,7 @@ func (r *redeemerClient) ValidateSender(sender ethcommon.Address) error {
 	return nil
 }
 
-func (r *redeemerClient) MonitorMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
+func (r *redeemerClient) SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
 	return nil
 }
 

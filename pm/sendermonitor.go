@@ -39,7 +39,7 @@ type SenderMonitor interface {
 
 	// MonitorMaxFloat listens for max floats updates for a sender
 	// This method only needs to be "implemented" when the SenderMonitor consumer is a fire-and-forget module for winning tickets
-	MonitorMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription
+	SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription
 }
 
 // ErrorMonitor is an interface that describes methods used to monitor acceptable pm ticket errors as well as acceptable price errors
@@ -377,7 +377,7 @@ func (sm *senderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnErr er
 	return
 }
 
-func (sm *senderMonitor) MonitorMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
+func (sm *senderMonitor) SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
