@@ -201,7 +201,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// selectKV prepared statement
 	stmt, err := db.Prepare("SELECT value FROM kv WHERE key=?")
 	if err != nil {
-		glog.Error("Unable to prepare selectKV stmt", err)
+		glog.Error("Unable to prepare selectKV stmt ", err)
 		d.Close()
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Select earliest ticket
 	stmt, err = db.Prepare("SELECT sender, recipient, faceValue, winProb, senderNonce, recipientRand, recipientRandHash, sig, creationRound, creationRoundBlockHash, paramsExpirationBlock FROM ticketQueue WHERE sender=? ORDER BY createdAt ASC LIMIT 1")
 	if err != nil {
-		glog.Error("Unable to prepare selectEarliestWinningTicket", err)
+		glog.Error("Unable to prepare selectEarliestWinningTicket ", err)
 		d.Close()
 		return nil, err
 	}
@@ -310,7 +310,7 @@ func InitDB(dbPath string) (*DB, error) {
 
 	stmt, err = db.Prepare("SELECT count(sig) FROM ticketQueue WHERE sender=?")
 	if err != nil {
-		glog.Error("Unable to prepare winningTicketCount", err)
+		glog.Error("Unable to prepare winningTicketCount ", err)
 		d.Close()
 		return nil, err
 	}
@@ -319,7 +319,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Remove latest ticket
 	stmt, err = db.Prepare("DELETE FROM ticketQueue WHERE sig=?")
 	if err != nil {
-		glog.Error("Unable to prepare removeWinningTicket", err)
+		glog.Error("Unable to prepare removeWinningTicket ", err)
 		d.Close()
 		return nil, err
 	}
@@ -328,7 +328,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Insert block header
 	stmt, err = db.Prepare("INSERT INTO blockheaders(number, parent, hash, logs) VALUES(?, ?, ?, ?)")
 	if err != nil {
-		glog.Error("Unable to prepare insertMiniHeader", err)
+		glog.Error("Unable to prepare insertMiniHeader ", err)
 		d.Close()
 		return nil, err
 	}
@@ -337,7 +337,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Find the latest block header
 	stmt, err = db.Prepare("SELECT * FROM blockheaders ORDER BY number DESC LIMIT 1")
 	if err != nil {
-		glog.Error("Unable to prepare findLatestMiniHeader", err)
+		glog.Error("Unable to prepare findLatestMiniHeader ", err)
 		d.Close()
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Find all block headers sorted by number
 	stmt, err = db.Prepare("SELECT * FROM blockheaders ORDER BY number DESC")
 	if err != nil {
-		glog.Error("Unable to prepare findAllMiniHeadersSortedByNumber", err)
+		glog.Error("Unable to prepare findAllMiniHeadersSortedByNumber ", err)
 		d.Close()
 		return nil, err
 	}
@@ -355,7 +355,7 @@ func InitDB(dbPath string) (*DB, error) {
 	// Delete block header
 	stmt, err = db.Prepare("DELETE FROM blockheaders WHERE hash=?")
 	if err != nil {
-		glog.Error("Unable to prepare deleteMiniHeader", err)
+		glog.Error("Unable to prepare deleteMiniHeader ", err)
 		d.Close()
 		return nil, err
 	}
