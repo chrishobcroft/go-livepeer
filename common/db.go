@@ -683,7 +683,7 @@ func (db *DB) StoreWinningTicket(ticket *pm.SignedTicket) error {
 	)
 
 	if err != nil {
-		return errors.Wrapf(err, "failed inserting winning ticket sender=%v recipientRand=%v nonce=%v", ticket.Sender.Hex(), ticket.RecipientRand, ticket.SenderNonce)
+		return errors.Wrapf(err, "failed inserting winning ticket sender=%v", ticket.Sender.Hex())
 	}
 	return nil
 }
