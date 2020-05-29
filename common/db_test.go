@@ -942,15 +942,15 @@ func TestSelectEarliestWinningTicket(t *testing.T) {
 	require.Nil(err)
 
 	// no tickets found
-	latest, err := dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
+	earliest, err := dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
 	assert.Nil(err)
-	assert.Nil(latest)
+	assert.Nil(earliest)
 
 	err = dbh.StoreWinningTicket(signedTicket0)
 	require.Nil(err)
-	latest, err = dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
+	earliest, err = dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
 	assert.Nil(err)
-	assert.Equal(signedTicket0, latest)
+	assert.Equal(signedTicket0, earliest)
 
 	_, ticket, sig, recipientRand = defaultWinningTicket(t)
 	ticket.Sender = ethcommon.HexToAddress("charizard")
@@ -963,9 +963,9 @@ func TestSelectEarliestWinningTicket(t *testing.T) {
 	err = dbh.StoreWinningTicket(signedTicket2)
 	require.Nil(err)
 
-	latest, err = dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
+	earliest, err = dbh.SelectEarliestWinningTicket(ethcommon.HexToAddress("charizard"))
 	assert.Nil(err)
-	assert.Equal(latest, signedTicket0)
+	assert.Equal(earliest, signedTicket0)
 }
 
 func TestRemoveWinningTicket(t *testing.T) {
@@ -1035,9 +1035,9 @@ func TestInsertMiniHeader_ReturnsFindLatestMiniHeader(t *testing.T) {
 	})
 	err = dbh.InsertMiniHeader(h1)
 	require.Nil(err)
-	latest, err := dbh.FindLatestMiniHeader()
+	earliest, err := dbh.FindLatestMiniHeader()
 	require.Nil(err)
-	assert.Equal(h1, latest)
+	assert.Equal(h1, earliest)
 	assert.Equal(len(h1.Logs), 2)
 
 	// test MiniHeader = nil error
