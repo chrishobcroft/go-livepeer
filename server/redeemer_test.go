@@ -580,6 +580,7 @@ func TestRedeemerClient_CleanupLoop(t *testing.T) {
 			lastAccess time.Time
 		}),
 		quit: make(chan struct{}),
+		sm:   newStubSenderManager(),
 	}
 
 	oldCleanupTime := cleanupLoopTime
