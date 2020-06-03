@@ -347,6 +347,7 @@ func (r *RedeemerClient) startCleanupLoop() {
 			for sender, mf := range r.senders {
 				if mf.lastAccess.Add(cleanupLoopTime).Before(time.Now()) {
 					delete(r.senders, sender)
+					r.sm.Clear(sender)
 				}
 			}
 			r.mu.Unlock()
