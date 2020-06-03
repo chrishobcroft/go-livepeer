@@ -207,7 +207,7 @@ func (r *Redeemer) startCleanupLoop() {
 	}
 }
 
-type redeemerClient struct {
+type RedeemerClient struct {
 	rpc      net.TicketRedeemerClient
 	maxFloat map[ethcommon.Address]*big.Int
 	mu       sync.RWMutex
@@ -218,7 +218,7 @@ type redeemerClient struct {
 
 // NewRedeemerClient instantiates a new client for the ticket redemption service
 // The client implements the pm.SenderMonitor interface
-func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (pm.SenderMonitor, *grpc.ClientConn, error) {
+func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (*RedeemerClient, *grpc.ClientConn, error) {
 	conn, err := grpc.Dial(
 		uri.String(),
 		grpc.WithBlock(),
@@ -231,7 +231,7 @@ func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (pm
 		glog.Errorf("Did not connect to orch=%v err=%v", uri, err)
 		return nil, nil, fmt.Errorf("Did not connect to orch=%v err=%v", uri, err)
 	}
-	return &redeemerClient{
+	return &RedeemerClient{
 		rpc:      net.NewTicketRedeemerClient(conn),
 		sm:       sm,
 		tm:       tm,
@@ -240,22 +240,22 @@ func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (pm
 	}, conn, nil
 }
 
-func (r *redeemerClient) Start() {
+func (r *RedeemerClient) Start() {
 	go r.monitorMaxFloat(context.Background())
 }
 
-func (r *redeemerClient) Stop() {
+func (r *RedeemerClient) Stop() {
 	close(r.quit)
 }
 
-func (r *redeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
+func (r *RedeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
 	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
 	_, err := r.rpc.QueueTicket(ctx, protoTicket(ticket))
 	return err
 }
 
-func (r *redeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
+func (r *RedeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
 	r.mu.RLock()
 	if mf, ok := r.maxFloat[sender]; ok && mf != nil {
 		return mf, nil
@@ -273,7 +273,7 @@ func (r *redeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
 	return new(big.Int).SetBytes(mfu.MaxFloat), nil
 }
 
-func (r *redeemerClient) ValidateSender(sender ethcommon.Address) error {
+func (r *RedeemerClient) ValidateSender(sender ethcommon.Address) error {
 	info, err := r.sm.GetSenderInfo(sender)
 	if err != nil {
 		return fmt.Errorf("could not get sender info for %v: %v", sender.Hex(), err)
@@ -285,11 +285,11 @@ func (r *redeemerClient) ValidateSender(sender ethcommon.Address) error {
 	return nil
 }
 
-func (r *redeemerClient) SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
+func (r *RedeemerClient) SubscribeMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
 	return nil
 }
 
-func (r *redeemerClient) monitorMaxFloat(ctx context.Context) {
+func (r *RedeemerClient) monitorMaxFloat(ctx context.Context) {
 	stream, err := r.rpc.MonitorMaxFloat(ctx, &empty.Empty{})
 	if err != nil {
 		glog.Errorf("Unable to get MonitorMaxFloat stream")

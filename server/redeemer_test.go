@@ -291,7 +291,7 @@ func TestRedeemerClient_MonitorMaxFloat_RequestErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -317,7 +317,7 @@ func TestRedeemerClient_MonitorMaxFloat_StreamRecvErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -347,7 +347,7 @@ func TestRedeemerClient_MonitorMaxFloat_ContextDone(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -376,7 +376,7 @@ func TestRedeemerClient_MonitorMaxFloat_UpdateMaxFloat(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -401,7 +401,7 @@ func TestRedeemerClient_QueueTicket_RPCErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -430,7 +430,7 @@ func TestRedeemerClient_QueueTicket_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		rpc:      rpc,
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		quit:     make(chan struct{}),
@@ -456,7 +456,7 @@ func TestRedeemerClient_QueueTicket_Success(t *testing.T) {
 
 func TestRedeemerClient_MaxFloat_LocalExists(t *testing.T) {
 	assert := assert.New(t)
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 	}
 	sender := pm.RandAddress()
@@ -471,7 +471,7 @@ func TestRedeemerClient_MaxFloat_RPCErr(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		rpc:      rpc,
 	}
@@ -490,7 +490,7 @@ func TestRedeemerClient_MaxFloat_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		maxFloat: make(map[ethcommon.Address]*big.Int),
 		rpc:      rpc,
 	}
@@ -512,7 +512,7 @@ func TestRedeemerClient_MaxFloat_Success(t *testing.T) {
 
 func TestRedeemerClient_ValidateSender_SenderInfoErr(t *testing.T) {
 	assert := assert.New(t)
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		sm: newStubSenderManager(),
 	}
 	rc.sm.(*stubSenderManager).err = errors.New("GetSenderInfo error")
@@ -523,7 +523,7 @@ func TestRedeemerClient_ValidateSender_MaxWithDrawRoundErr(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		sm: newStubSenderManager(),
 		tm: &stubTimeManager{
 			round: big.NewInt(10),
@@ -545,7 +545,7 @@ func TestRedeemerClient_ValidateSender_Success(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	rc := &redeemerClient{
+	rc := &RedeemerClient{
 		sm: newStubSenderManager(),
 		tm: &stubTimeManager{
 			round: big.NewInt(0),
