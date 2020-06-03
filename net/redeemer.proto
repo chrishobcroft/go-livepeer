@@ -29,6 +29,6 @@ message Ticket {
 }
 
 message MaxFloatUpdate {
-        bytes sender = 1;
-        bytes max_float= 2;
+    bytes sender = 1;
+    bytes max_float= 2;
 }
