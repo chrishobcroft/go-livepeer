@@ -47,7 +47,7 @@ func TestRedeemerServer_NewRedeemer(t *testing.T) {
 	recipient := pm.RandAddress()
 	r, err = NewRedeemer(recipient, &eth.StubClient{}, &stubSenderMonitor{})
 	assert.Nil(err)
-	assert.Equal(r.(*redeemer).recipient, recipient)
+	assert.Equal(r.recipient, recipient)
 }
 
 func TestRedeemerServer_QueueTicket(t *testing.T) {
@@ -87,7 +87,7 @@ func TestRedeemerServer_QueueTicket(t *testing.T) {
 
 	// check that monitorMaxFloat is called
 	time.Sleep(time.Millisecond)
-	_, ok := r.(*redeemer).liveSenders.Load(ethcommon.BytesToAddress(ticket.Sender))
+	_, ok := r.liveSenders.Load(ethcommon.BytesToAddress(ticket.Sender))
 	assert.True(ok)
 }
 
@@ -129,7 +129,7 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 	assert.EqualError(err, baseRPCErr+"context is nil")
 
 	// Test wrong channel type (sanity check)
-	r.(*redeemer).subs.Store(stubPeer.Addr.String(), struct{}{})
+	r.subs.Store(stubPeer.Addr.String(), struct{}{})
 	stream.EXPECT().Context().Return(ctx).AnyTimes()
 	err = r.MonitorMaxFloat(req, stream)
 	assert.EqualError(err, baseRPCErr+"maxFloatUpdates is of the wrong type")
@@ -139,7 +139,7 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 	// Create a channel for receive updates
 	// To be sent into the stream for the subscriber
 	maxFloatUpdates := make(chan *net.MaxFloatUpdate)
-	r.(*redeemer).subs.Store(stubPeer.Addr.String(), maxFloatUpdates)
+	r.subs.Store(stubPeer.Addr.String(), maxFloatUpdates)
 
 	// Test send error - io.EOF
 	expErr := io.EOF
@@ -153,12 +153,12 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 	maxFloatUpdates <- &net.MaxFloatUpdate{}
 	err = <-errC
 	assert.EqualError(err, baseRPCErr+expErr.Error())
-	_, ok = r.(*redeemer).subs.Load(stubPeer.Addr.String())
+	_, ok = r.subs.Load(stubPeer.Addr.String())
 	assert.False(ok)
 
 	// Test send error - not io.EOF
 	// Re-add channel since io.EOF error removed it from the subs list
-	r.(*redeemer).subs.Store(stubPeer.Addr.String(), maxFloatUpdates)
+	r.subs.Store(stubPeer.Addr.String(), maxFloatUpdates)
 	expErr = errors.New("send error")
 	stream.EXPECT().Send(gomock.Any()).Return(expErr)
 	go func() {
@@ -169,15 +169,15 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 	errLogsBefore := glog.Stats.Error.Lines()
 	maxFloatUpdates <- &net.MaxFloatUpdate{}
 	// clean up the current goroutine and test quit case
-	close(r.(*redeemer).quit)
+	close(r.quit)
 	err = <-errC
 	assert.Nil(err)
 	errLogsAfter := glog.Stats.Error.Lines()
 	assert.Equal(errLogsAfter-errLogsBefore, int64(1))
-	_, ok = r.(*redeemer).subs.Load(stubPeer.Addr.String())
+	_, ok = r.subs.Load(stubPeer.Addr.String())
 	assert.True(ok)
 	// instantiate a new quit channel since we closed the original one
-	r.(*redeemer).quit = make(chan struct{})
+	r.quit = make(chan struct{})
 
 	// Test no error
 	require.Nil(err)
@@ -191,16 +191,16 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 
 	maxFloatUpdates <- &net.MaxFloatUpdate{}
 	// clean up the current goroutine and test quit case
-	close(r.(*redeemer).quit)
+	close(r.quit)
 	err = <-errC
 	assert.Nil(err)
 	errLogsAfter = glog.Stats.Error.Lines()
 	assert.Equal(errLogsAfter-errLogsBefore, int64(0))
 
-	_, ok = r.(*redeemer).subs.Load(stubPeer.Addr.String())
+	_, ok = r.subs.Load(stubPeer.Addr.String())
 	assert.True(ok)
 	// instantiate a new quit channel since we closed the original one
-	r.(*redeemer).quit = make(chan struct{})
+	r.quit = make(chan struct{})
 
 	// test context.Done()
 	stream.EXPECT().Send(gomock.Any()).Return(nil)
@@ -216,7 +216,7 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 func TestRedeemerServer_MaxFloat(t *testing.T) {
 	assert := assert.New(t)
 	sm := newStubSenderMonitor()
-	r := &redeemer{
+	r := &Redeemer{
 		sm: sm,
 	}
 
@@ -244,7 +244,7 @@ func TestRedeemerServer_MaxFloat(t *testing.T) {
 
 func TestRedeemerServer_CleanupLoop(t *testing.T) {
 	assert := assert.New(t)
-	r := &redeemer{
+	r := &Redeemer{
 		quit: make(chan struct{}),
 	}
 	oldCleanupTime := cleanupLoopTime

@@ -28,14 +28,7 @@ import (
 
 var cleanupLoopTime = 1 * time.Hour
 
-// Redeemer is the interface for a ticket redemption gRPC service
-type Redeemer interface {
-	net.TicketRedeemerServer
-	Start(host *url.URL) error
-	Stop()
-}
-
-type redeemer struct {
+type Redeemer struct {
 	recipient   ethcommon.Address
 	subs        sync.Map
 	eth         eth.LivepeerEthClient
@@ -45,7 +38,7 @@ type redeemer struct {
 }
 
 // NewRedeemer creates a new ticket redemption service instance
-func NewRedeemer(recipient ethcommon.Address, eth eth.LivepeerEthClient, sm pm.SenderMonitor) (Redeemer, error) {
+func NewRedeemer(recipient ethcommon.Address, eth eth.LivepeerEthClient, sm pm.SenderMonitor) (*Redeemer, error) {
 
 	if recipient == (ethcommon.Address{}) {
 		return nil, fmt.Errorf("must provide a recipient")
@@ -59,7 +52,7 @@ func NewRedeemer(recipient ethcommon.Address, eth eth.LivepeerEthClient, sm pm.S
 		return nil, fmt.Errorf("must provide a SenderMonitor")
 	}
 
-	return &redeemer{
+	return &Redeemer{
 		recipient: recipient,
 		eth:       eth,
 		sm:        sm,
@@ -67,7 +60,7 @@ func NewRedeemer(recipient ethcommon.Address, eth eth.LivepeerEthClient, sm pm.S
 	}, nil
 }
 
-func (r *redeemer) Start(host *url.URL) error {
+func (r *Redeemer) Start(host *url.URL) error {
 	listener, err := gonet.Listen("tcp", host.String())
 	if err != nil {
 		return err
@@ -90,11 +83,11 @@ func (r *redeemer) Start(host *url.URL) error {
 	return s.Serve(listener)
 }
 
-func (r *redeemer) Stop() {
+func (r *Redeemer) Stop() {
 	close(r.quit)
 }
 
-func (r *redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*empty.Empty, error) {
+func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*empty.Empty, error) {
 	t := pmTicket(ticket)
 	if err := r.sm.QueueTicket(t); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -105,7 +98,7 @@ func (r *redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*empty.
 	return &empty.Empty{}, nil
 }
 
-func (r *redeemer) monitorMaxFloat(sender ethcommon.Address) {
+func (r *Redeemer) monitorMaxFloat(sender ethcommon.Address) {
 	_, ok := r.liveSenders.Load(sender)
 	if ok {
 		// update last access
@@ -128,7 +121,7 @@ func (r *redeemer) monitorMaxFloat(sender ethcommon.Address) {
 	}
 }
 
-func (r *redeemer) sendMaxFloatUpdate(sender ethcommon.Address, maxFloat *big.Int) {
+func (r *Redeemer) sendMaxFloatUpdate(sender ethcommon.Address, maxFloat *big.Int) {
 	r.subs.Range(
 		func(key, value interface{}) bool {
 			var maxFloatB []byte
@@ -144,7 +137,7 @@ func (r *redeemer) sendMaxFloatUpdate(sender ethcommon.Address, maxFloat *big.In
 	)
 }
 
-func (r *redeemer) MonitorMaxFloat(req *empty.Empty, stream net.TicketRedeemer_MonitorMaxFloatServer) error {
+func (r *Redeemer) MonitorMaxFloat(req *empty.Empty, stream net.TicketRedeemer_MonitorMaxFloatServer) error {
 	// The client address will serve as the ID for the stream
 	p, ok := peer.FromContext(stream.Context())
 	if !ok {
@@ -185,7 +178,7 @@ func (r *redeemer) MonitorMaxFloat(req *empty.Empty, stream net.TicketRedeemer_M
 	}
 }
 
-func (r *redeemer) MaxFloat(ctx context.Context, req *net.MaxFloatRequest) (*net.MaxFloatUpdate, error) {
+func (r *Redeemer) MaxFloat(ctx context.Context, req *net.MaxFloatRequest) (*net.MaxFloatUpdate, error) {
 	mf, err := r.sm.MaxFloat(ethcommon.BytesToAddress(req.Sender))
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Errorf("max float error: %v", err).Error())
@@ -196,7 +189,7 @@ func (r *redeemer) MaxFloat(ctx context.Context, req *net.MaxFloatRequest) (*net
 	}, nil
 }
 
-func (r *redeemer) startCleanupLoop() {
+func (r *Redeemer) startCleanupLoop() {
 	ticker := time.NewTicker(cleanupLoopTime)
 	for {
 		select {
