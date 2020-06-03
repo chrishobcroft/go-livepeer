@@ -208,12 +208,15 @@ func (r *Redeemer) startCleanupLoop() {
 }
 
 type RedeemerClient struct {
-	rpc      net.TicketRedeemerClient
-	maxFloat map[ethcommon.Address]*big.Int
-	mu       sync.RWMutex
-	quit     chan struct{}
-	sm       pm.SenderManager
-	tm       pm.TimeManager
+	rpc     net.TicketRedeemerClient
+	senders map[ethcommon.Address]*struct {
+		maxFloat   *big.Int
+		lastAccess time.Time
+	}
+	mu   sync.RWMutex
+	quit chan struct{}
+	sm   pm.SenderManager
+	tm   pm.TimeManager
 }
 
 // NewRedeemerClient instantiates a new client for the ticket redemption service
@@ -232,11 +235,14 @@ func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (*R
 		return nil, nil, fmt.Errorf("Did not connect to orch=%v err=%v", uri, err)
 	}
 	return &RedeemerClient{
-		rpc:      net.NewTicketRedeemerClient(conn),
-		sm:       sm,
-		tm:       tm,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: net.NewTicketRedeemerClient(conn),
+		sm:  sm,
+		tm:  tm,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}),
+		quit: make(chan struct{}),
 	}, conn, nil
 }
 
@@ -256,11 +262,12 @@ func (r *RedeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
 }
 
 func (r *RedeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
-	r.mu.RLock()
-	if mf, ok := r.maxFloat[sender]; ok && mf != nil {
-		return mf, nil
+	r.mu.Lock()
+	if mf, ok := r.senders[sender]; ok && mf.maxFloat != nil {
+		mf.lastAccess = time.Now()
+		return mf.maxFloat, nil
 	}
-	r.mu.RUnlock()
+	r.mu.Unlock()
 
 	// request max float from redeemer if not locally available
 	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
@@ -319,10 +326,32 @@ func (r *RedeemerClient) monitorMaxFloat(ctx context.Context) {
 			return
 		case update := <-updateC:
 			r.mu.Lock()
-			r.maxFloat[ethcommon.BytesToAddress(update.Sender)] = new(big.Int).SetBytes(update.MaxFloat)
+			r.senders[ethcommon.BytesToAddress(update.Sender)] = &struct {
+				maxFloat   *big.Int
+				lastAccess time.Time
+			}{new(big.Int).SetBytes(update.MaxFloat), time.Now()}
 			r.mu.Unlock()
 		case err := <-errC:
 			glog.Error(err)
+		}
+	}
+}
+
+func (r *RedeemerClient) startCleanupLoop() {
+	ticker := time.NewTicker(cleanupLoopTime)
+	for {
+		select {
+		case <-ticker.C:
+			// clean up map entries that haven't been cleared since the last cleanup loop ran
+			r.mu.Lock()
+			for sender, mf := range r.senders {
+				if mf.lastAccess.Add(cleanupLoopTime).Before(time.Now()) {
+					delete(r.senders, sender)
+				}
+			}
+			r.mu.Unlock()
+		case <-r.quit:
+			return
 		}
 	}
 }

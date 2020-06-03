@@ -292,9 +292,11 @@ func TestRedeemerClient_MonitorMaxFloat_RequestErr(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 
 	ctx := context.TODO()
@@ -306,7 +308,7 @@ func TestRedeemerClient_MonitorMaxFloat_RequestErr(t *testing.T) {
 	errLogsAfter := glog.Stats.Error.Lines()
 	assert.Equal(errLogsAfter-errLogsBefore, int64(1))
 	// check that maxfloat didn't change
-	_, ok := rc.maxFloat[sender]
+	_, ok := rc.senders[sender]
 	assert.False(ok)
 }
 
@@ -318,9 +320,11 @@ func TestRedeemerClient_MonitorMaxFloat_StreamRecvErr(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 	// clean up go routine
 	defer rc.Stop()
@@ -336,7 +340,7 @@ func TestRedeemerClient_MonitorMaxFloat_StreamRecvErr(t *testing.T) {
 	errLogsAfter := glog.Stats.Error.Lines()
 	assert.Greater(errLogsAfter-errLogsBefore, int64(0))
 	// check that maxfloat didn't change
-	_, ok := rc.maxFloat[sender]
+	_, ok := rc.senders[sender]
 	assert.False(ok)
 }
 
@@ -348,9 +352,11 @@ func TestRedeemerClient_MonitorMaxFloat_ContextDone(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -365,7 +371,7 @@ func TestRedeemerClient_MonitorMaxFloat_ContextDone(t *testing.T) {
 	errLogsAfter := glog.Stats.Info.Lines()
 	assert.Greater(errLogsAfter-errLogsBefore, int64(0))
 	// check that maxfloat didn't change
-	_, ok := rc.maxFloat[sender]
+	_, ok := rc.senders[sender]
 	assert.False(ok)
 }
 
@@ -377,9 +383,11 @@ func TestRedeemerClient_MonitorMaxFloat_UpdateMaxFloat(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 	// clean up go routine
 	defer rc.Stop()
@@ -402,9 +410,11 @@ func TestRedeemerClient_QueueTicket_RPCErr(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 
 	ticket := &net.Ticket{
@@ -431,9 +441,11 @@ func TestRedeemerClient_QueueTicket_Success(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		rpc:      rpc,
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		quit:     make(chan struct{}),
+		rpc: rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), quit: make(chan struct{}),
 	}
 
 	ticket := &net.Ticket{
@@ -457,13 +469,21 @@ func TestRedeemerClient_QueueTicket_Success(t *testing.T) {
 func TestRedeemerClient_MaxFloat_LocalExists(t *testing.T) {
 	assert := assert.New(t)
 	rc := &RedeemerClient{
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-	}
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		})}
 	sender := pm.RandAddress()
-	rc.maxFloat[sender] = big.NewInt(100)
+	lA := time.Now()
+	rc.senders[sender] = &struct {
+		maxFloat   *big.Int
+		lastAccess time.Time
+	}{big.NewInt(100), lA}
 	mf, err := rc.MaxFloat(sender)
 	assert.Nil(err)
 	assert.Equal(mf, big.NewInt(100))
+	assert.True(lA.Before(rc.senders[sender].lastAccess))
+	// check last access was updated
 }
 
 func TestRedeemerClient_MaxFloat_RPCErr(t *testing.T) {
@@ -472,8 +492,10 @@ func TestRedeemerClient_MaxFloat_RPCErr(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		rpc:      rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), rpc: rpc,
 	}
 
 	// test error
@@ -491,8 +513,10 @@ func TestRedeemerClient_MaxFloat_Success(t *testing.T) {
 	rpc := net.NewMockTicketRedeemerClient(ctrl)
 	defer ctrl.Finish()
 	rc := &RedeemerClient{
-		maxFloat: make(map[ethcommon.Address]*big.Int),
-		rpc:      rpc,
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}), rpc: rpc,
 	}
 
 	expMf := big.NewInt(100)
@@ -560,6 +584,49 @@ func TestRedeemerClient_ValidateSender_Success(t *testing.T) {
 	require.Equal(info.WithdrawRound, big.NewInt(10))
 
 	assert.Nil(rc.ValidateSender(sender))
+}
+
+func TestRedeemerClient_CleanupLoop(t *testing.T) {
+	assert := assert.New(t)
+	r := &RedeemerClient{
+		senders: make(map[ethcommon.Address]*struct {
+			maxFloat   *big.Int
+			lastAccess time.Time
+		}),
+		quit: make(chan struct{}),
+	}
+
+	oldCleanupTime := cleanupLoopTime
+	cleanupLoopTime = 3 * time.Millisecond
+	defer func() {
+		cleanupLoopTime = oldCleanupTime
+	}()
+
+	sender0 := ethcommon.HexToAddress("foo")
+	sender1 := ethcommon.HexToAddress("bar")
+
+	r.senders[sender0] = &struct {
+		maxFloat   *big.Int
+		lastAccess time.Time
+	}{big.NewInt(1), time.Now().Add(cleanupLoopTime)}
+
+	r.senders[sender1] = &struct {
+		maxFloat   *big.Int
+		lastAccess time.Time
+	}{big.NewInt(1), time.Now().Add(-cleanupLoopTime)}
+
+	// cleanupLoop will run after 'cleanupLoopTime' so
+	// sender0 will not be cleared
+	// sender1 will be cleared
+	go r.startCleanupLoop()
+	time.Sleep(cleanupLoopTime)
+	close(r.quit)
+	time.Sleep(time.Millisecond)
+	r.quit = make(chan struct{})
+	_, ok := r.senders[sender0]
+	assert.True(ok)
+	_, ok = r.senders[sender1]
+	assert.False(ok)
 }
 
 // Stubs
