@@ -254,32 +254,18 @@ func TestRedeemerServer_CleanupLoop(t *testing.T) {
 	}()
 	sender0 := ethcommon.HexToAddress("foo")
 	sender1 := ethcommon.HexToAddress("bar")
-	sender2 := ethcommon.HexToAddress("caz")
-	r.liveSenders.Store(sender0, time.Now())
-	r.liveSenders.Store(sender1, time.Now().Add(cleanupLoopTime))
-	r.liveSenders.Store(sender2, time.Now().Add(-cleanupLoopTime))
+	r.liveSenders.Store(sender0, time.Now().Add(cleanupLoopTime))
+	r.liveSenders.Store(sender1, time.Now().Add(-cleanupLoopTime))
 	// cleanupLoop will run after 'cleanupLoopTime' so
 	// sender0 and sender1 will not be cleared
 	// sender2 will be cleared
 	go r.startCleanupLoop()
 	time.Sleep(cleanupLoopTime)
 	close(r.quit)
-	r.quit = make(chan struct{})
+	time.Sleep(time.Millisecond)
 	_, ok := r.liveSenders.Load(sender0)
 	assert.True(ok)
 	_, ok = r.liveSenders.Load(sender1)
-	assert.True(ok)
-	_, ok = r.liveSenders.Load(sender2)
-	assert.False(ok)
-	// on the next iteration sender0 will be cleared
-	go r.startCleanupLoop()
-	time.Sleep(cleanupLoopTime)
-	// avoid failing test due to timing
-	r.liveSenders.Store(sender1, time.Now())
-	close(r.quit)
-	_, ok = r.liveSenders.Load(sender1)
-	assert.True(ok)
-	_, ok = r.liveSenders.Load(sender0)
 	assert.False(ok)
 }
 
