@@ -27,8 +27,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const rpcTimeout = 8 * time.Second
-
 var cleanupLoopTime = 1 * time.Hour
 
 // Redeemer is the interface for a ticket redemption gRPC service
@@ -259,7 +257,7 @@ func (r *redeemerClient) Stop() {
 }
 
 func (r *redeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
-	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
 	// QueueTicket either returns an error on failure
 	// or an empty object on success so we can ignore the response object.
@@ -285,7 +283,7 @@ func (r *redeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
 	}
 
 	// request max float from redeemer if not locally available
-	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
 
 	mfC := make(chan *big.Int)
