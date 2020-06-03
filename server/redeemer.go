@@ -5,7 +5,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"math/big"
@@ -259,53 +258,26 @@ func (r *redeemerClient) Stop() {
 func (r *redeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
 	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
-	// QueueTicket either returns an error on failure
-	// or an empty object on success so we can ignore the response object.
-	res := make(chan error)
-	go func() {
-		_, err := r.rpc.QueueTicket(ctx, protoTicket(ticket))
-		res <- err
-	}()
-	select {
-	case <-ctx.Done():
-		return errors.New("QueueTicket request timed out")
-	case err := <-res:
-		return err
-	}
+	_, err := r.rpc.QueueTicket(ctx, protoTicket(ticket))
+	return err
 }
 
 func (r *redeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
 	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	if mf, ok := r.maxFloat[sender]; ok && mf != nil {
 		return mf, nil
 	}
+	r.mu.RUnlock()
 
 	// request max float from redeemer if not locally available
 	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
 
-	mfC := make(chan *big.Int)
-	errC := make(chan error)
-	go func() {
-		mf, err := r.rpc.MaxFloat(ctx, &net.MaxFloatRequest{Sender: sender.Bytes()})
-		if err != nil {
-			errC <- err
-			return
-		}
-		mfC <- new(big.Int).SetBytes(mf.MaxFloat)
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, errors.New("max float request timed out")
-	case err := <-errC:
-		return nil, fmt.Errorf("max float error: %v", err)
-	case mf := <-mfC:
-		r.maxFloat[sender] = mf
-		return mf, nil
+	mfu, err := r.rpc.MaxFloat(ctx, &net.MaxFloatRequest{Sender: sender.Bytes()})
+	if err != nil {
+		return nil, err
 	}
+	return new(big.Int).SetBytes(mfu.MaxFloat), nil
 }
 
 func (r *redeemerClient) ValidateSender(sender ethcommon.Address) error {

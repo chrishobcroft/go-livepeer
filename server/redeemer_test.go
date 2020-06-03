@@ -480,23 +480,9 @@ func TestRedeemerClient_MaxFloat_RPCErr(t *testing.T) {
 	expErr := errors.New("max float error")
 	rpc.EXPECT().MaxFloat(gomock.Any(), gomock.Any()).Return(nil, expErr)
 
-	resC := make(chan struct {
-		mf  *big.Int
-		err error
-	})
-
-	go func() {
-		mf, err := rc.MaxFloat(ethcommon.HexToAddress("foo"))
-		resC <- struct {
-			mf  *big.Int
-			err error
-		}{mf, err}
-	}()
-
-	res := <-resC
-
-	assert.Nil(res.mf)
-	assert.EqualError(res.err, "max float error: "+expErr.Error())
+	mf, err := rc.MaxFloat(ethcommon.HexToAddress("foo"))
+	assert.Nil(mf)
+	assert.EqualError(err, expErr.Error())
 }
 
 func TestRedeemerClient_MaxFloat_Success(t *testing.T) {
@@ -516,26 +502,12 @@ func TestRedeemerClient_MaxFloat_Success(t *testing.T) {
 	}
 	rpc.EXPECT().MaxFloat(gomock.Any(), gomock.Any()).Return(update, nil)
 
-	resC := make(chan struct {
-		mf  *big.Int
-		err error
-	})
-
 	sender := ethcommon.HexToAddress("foo")
 
-	go func() {
-		mf, err := rc.MaxFloat(sender)
-		resC <- struct {
-			mf  *big.Int
-			err error
-		}{mf, err}
-	}()
+	mf, err := rc.MaxFloat(sender)
 
-	res := <-resC
-
-	assert.Nil(res.err)
-	assert.Equal(expMf, res.mf)
-	assert.Equal(rc.maxFloat[sender], expMf)
+	assert.Nil(err)
+	assert.Equal(expMf, mf)
 }
 
 func TestRedeemerClient_ValidateSender_SenderInfoErr(t *testing.T) {
