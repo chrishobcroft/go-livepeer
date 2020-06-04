@@ -723,6 +723,30 @@ func TestSubscribeMaxFloatChange(t *testing.T) {
 	assert.Equal(newMaxFloat, mf)
 }
 
+func TestWatchSenderInfoChange(t *testing.T) {
+	assert := assert.New(t)
+	claimant, b, smgr, tm := localSenderMonitorFixture()
+	smI := NewSenderMonitor(claimant, b, smgr, tm, newStubTicketStore(), 5*time.Minute, 3600)
+	sm := smI.(*LocalSenderMonitor)
+	go sm.watchSenderInfoChange()
+	defer sm.Stop()
+
+	sender := RandAddress()
+
+	time.Sleep(time.Second)
+
+	sink := make(chan struct{})
+	sub := sm.SubscribeMaxFloatChange(sender, sink)
+	defer sub.Unsubscribe()
+	time.Sleep(time.Second)
+
+	smgr.senderInfoSink <- sender
+
+	_, ok := <-sink
+	assert.True(ok)
+}
+
+
 func localSenderMonitorFixture() (ethcommon.Address, *stubBroker, *stubSenderManager, *stubTimeManager) {
 	claimant := RandAddress()
 	b := newStubBroker()

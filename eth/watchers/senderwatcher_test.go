@@ -708,3 +708,54 @@ func TestNewRoundEvent_LogRemoved(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(claimed, expectedClaimedAmount)
 }
+
+func TestSubscribeSenderInfoChange(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	watcher := &stubBlockWatcher{}
+	lpEth := &eth.StubClient{
+		SenderInfo: &pm.SenderInfo{
+			Reserve: &pm.ReserveInfo{
+				FundsRemaining: big.NewInt(100),
+			},
+		},
+	}
+
+	sm, err := NewSenderWatcher(stubTicketBrokerAddr, watcher, lpEth, &stubTimeWatcher{})
+	require.Nil(err)
+
+	header := defaultMiniHeader()
+
+	// Test reserve funded
+	fundedEvent := newStubReserveFundedLog()
+	header.Logs = append(header.Logs, fundedEvent)
+
+	blockEvent := &blockwatch.Event{
+		Type:        blockwatch.Added,
+		BlockHeader: header,
+	}
+
+	sink := make(chan ethcommon.Address, 10)
+	sub := sm.SubscribeSenderInfoChange(sink)
+	defer sub.Unsubscribe()
+
+	go sm.Watch()
+	defer sm.Stop()
+	time.Sleep(time.Millisecond)
+
+	// set initial values
+	_, err = sm.GetSenderInfo(stubSender)
+	require.Nil(err)
+
+	watcher.sink <- []*blockwatch.Event{blockEvent}
+	time.Sleep(time.Millisecond)
+	sender := <-sink
+	assert.Equal(sender, stubSender)
+
+	// Test log removed
+	blockEvent.Type = blockwatch.Removed
+	watcher.sink <- []*blockwatch.Event{blockEvent}
+	time.Sleep(time.Millisecond)
+	sender = <-sink
+	assert.Equal(sender, stubSender)
+}

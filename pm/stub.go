@@ -281,6 +281,8 @@ type stubSenderManager struct {
 	info           map[ethcommon.Address]*SenderInfo
 	claimedReserve map[ethcommon.Address]*big.Int
 	err            error
+	senderInfoSub  event.Subscription
+	senderInfoSink chan<- ethcommon.Address
 }
 
 func newStubSenderManager() *stubSenderManager {
@@ -308,6 +310,12 @@ func (s *stubSenderManager) ClaimedReserve(reserveHolder ethcommon.Address, clai
 func (s *stubSenderManager) Clear(addr ethcommon.Address) {
 	delete(s.info, addr)
 	delete(s.claimedReserve, addr)
+}
+
+func (s *stubSenderManager) SubscribeSenderInfoChange(sink chan<- ethcommon.Address) event.Subscription {
+	s.senderInfoSink = sink
+	s.senderInfoSub = &stubSubscription{errCh: make(<-chan error)}
+	return s.senderInfoSub
 }
 
 type stubGasPriceMonitor struct {
