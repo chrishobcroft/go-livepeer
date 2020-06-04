@@ -7,6 +7,7 @@ import (
 	"time"
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -746,6 +747,31 @@ func TestWatchSenderInfoChange(t *testing.T) {
 	assert.True(ok)
 }
 
+func TestWatchPoolSizeChange(t *testing.T) {
+	assert := assert.New(t)
+	claimant, b, smgr, tm := localSenderMonitorFixture()
+	smI := NewSenderMonitor(claimant, b, smgr, tm, newStubTicketStore(), 5*time.Minute, 3600)
+	sm := smI.(*LocalSenderMonitor)
+
+	sender := RandAddress()
+	tm.transcoderPoolSize = big.NewInt(10)
+
+	go sm.watchPoolSizeChange()
+	defer sm.Stop()
+	time.Sleep(time.Second)
+
+	tm.transcoderPoolSize = big.NewInt(20)
+
+	sink := make(chan struct{})
+	sub := sm.SubscribeMaxFloatChange(sender, sink)
+	defer sub.Unsubscribe()
+	time.Sleep(time.Second)
+
+	tm.roundSink <- types.Log{}
+
+	_, ok := <-sink
+	assert.True(ok)
+}
 
 func localSenderMonitorFixture() (ethcommon.Address, *stubBroker, *stubSenderManager, *stubTimeManager) {
 	claimant := RandAddress()
