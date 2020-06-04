@@ -370,10 +370,10 @@ func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnE
 		monitor.ValueRedeemed(ticket.Ticket.Sender.String(), ticket.Ticket.FaceValue)
 	}
 
-	return
+	return nil
 }
 
-func (sm *LocalSenderMonitor) MonitorMaxFloat(sender ethcommon.Address, sink chan<- *big.Int) event.Subscription {
+func (sm *LocalSenderMonitor) SubscribeMaxFloatChange(sender ethcommon.Address, sink chan<- struct{}) event.Subscription {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -382,4 +382,9 @@ func (sm *LocalSenderMonitor) MonitorMaxFloat(sender ethcommon.Address, sink cha
 	rs := sm.senders[sender]
 
 	return rs.subScope.Track(rs.subFeed.Subscribe(sink))
+}
+
+// The caller of this function should hold the lock for sm.senders
+func (sm *LocalSenderMonitor) sendMaxFloatChange(sender ethcommon.Address) {
+	sm.senders[sender].subFeed.Send(struct{}{})
 }

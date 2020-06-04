@@ -681,7 +681,7 @@ func TestRedeemWinningTicket_addFloatError(t *testing.T) {
 	assert.EqualError(err, "cannot subtract from insufficient pendingAmount")
 }
 
-func TestMonitorMaxFloat(t *testing.T) {
+func TestSubscribeMaxFloatChange(t *testing.T) {
 	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	initialReserve := big.NewInt(500)
@@ -701,23 +701,26 @@ func TestMonitorMaxFloat(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	sink := make(chan *big.Int, 10)
-	sub := sm.MonitorMaxFloat(addr, sink)
+	sink := make(chan struct{}, 10)
+	sub := sm.SubscribeMaxFloatChange(addr, sink)
 	defer sub.Unsubscribe()
 
 	amount := big.NewInt(100)
-	err := sm.subFloat(addr, amount)
-	require.Nil(err)
-	mfu := <-sink
+	sm.subFloat(addr, amount)
+	<-sink
 	newMaxFloat := new(big.Int).Sub(initialReserve, amount)
-	assert.Equal(newMaxFloat, mfu)
+	mf, err := sm.MaxFloat(addr)
+	assert.Nil(err)
+	assert.Equal(newMaxFloat, mf)
 
 	amount = big.NewInt(50)
 	err = sm.addFloat(addr, amount)
 	require.Nil(err)
-	mfu = <-sink
+	<-sink
 	newMaxFloat = new(big.Int).Add(newMaxFloat, amount)
-	assert.Equal(newMaxFloat, mfu)
+	mf, err = sm.MaxFloat(addr)
+	assert.Nil(err)
+	assert.Equal(newMaxFloat, mf)
 }
 
 func localSenderMonitorFixture() (ethcommon.Address, *stubBroker, *stubSenderManager, *stubTimeManager) {
