@@ -115,7 +115,7 @@ func (sm *LocalSenderMonitor) addFloat(addr ethcommon.Address, amount *big.Int) 
 	// Subtracting from pendingAmount = adding to max float
 	pendingAmount := sm.senders[addr].pendingAmount
 	if pendingAmount.Cmp(amount) < 0 {
-		glog.Error(errors.New("cannot subtract from insufficient pendingAmount"))
+		return errors.New("cannot subtract from insufficient pendingAmount")
 	}
 
 	sm.senders[addr].pendingAmount.Sub(pendingAmount, amount)
@@ -320,7 +320,7 @@ func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) error {
 		// the case where the ticket was not redeemd for its full face value
 		// because the reserve was insufficient
 		if err := sm.addFloat(ticket.Ticket.Sender, ticket.Ticket.FaceValue); err != nil {
-			glog.Error(errors.Wrap(err, "error adding to max float"))
+			glog.Error(err)
 		}
 	}()
 

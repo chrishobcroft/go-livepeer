@@ -8,6 +8,7 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -522,7 +523,7 @@ func TestRedeemWinningTicket_SingleTicket_ZeroMaxFloat(t *testing.T) {
 	signedT := defaultSignedTicket(addr, uint32(0))
 
 	err := sm.(*LocalSenderMonitor).redeemWinningTicket(signedT)
-	assert.EqualError(err, "max float is zero")
+	assert.EqualError(err, "max float is 0")
 }
 
 func TestRedeemWinningTicket_SingleTicket_RedeemError(t *testing.T) {
@@ -678,8 +679,11 @@ func TestRedeemWinningTicket_addFloatError(t *testing.T) {
 	sm.(*LocalSenderMonitor).ensureCache(addr)
 	sm.(*LocalSenderMonitor).senders[addr].pendingAmount = big.NewInt(-100)
 
+	errLogsBefore := glog.Stats.Error.Lines()
 	err := sm.(*LocalSenderMonitor).redeemWinningTicket(signedT)
-	assert.EqualError(err, "cannot subtract from insufficient pendingAmount")
+	errLogsAfter := glog.Stats.Error.Lines()
+	assert.Nil(err)
+	assert.Greater(errLogsAfter, errLogsBefore)
 }
 
 func TestSubscribeMaxFloatChange(t *testing.T) {
