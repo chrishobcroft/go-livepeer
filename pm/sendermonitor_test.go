@@ -26,7 +26,7 @@ var increaseTime = func(sec int64) {
 }
 
 func TestMaxFloat(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -81,7 +81,7 @@ func TestMaxFloat(t *testing.T) {
 }
 
 func TestSubFloat(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -121,7 +121,7 @@ func TestSubFloat(t *testing.T) {
 }
 
 func TestAddFloat(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -175,7 +175,7 @@ func TestAddFloat(t *testing.T) {
 }
 
 func TestQueueTicketAndSignalNewBlock(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -255,7 +255,7 @@ func TestQueueTicketAndSignalNewBlock(t *testing.T) {
 }
 
 func TestCleanup(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	sm := NewSenderMonitor(claimant, b, smgr, tm, newStubTicketStore(), 5*time.Minute, 3600)
 	sm.Start()
 	defer sm.Stop()
@@ -429,7 +429,7 @@ func TestCleanup(t *testing.T) {
 
 func TestReserveAlloc(t *testing.T) {
 	assert := assert.New(t)
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -456,7 +456,7 @@ func TestReserveAlloc(t *testing.T) {
 }
 
 func TestSenderMonitor_ValidateSender(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		WithdrawRound: big.NewInt(10),
@@ -499,7 +499,7 @@ func TestSenderMonitor_ValidateSender(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_SingleTicket_ZeroMaxFloat(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -525,7 +525,7 @@ func TestRedeemWinningTicket_SingleTicket_ZeroMaxFloat(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_SingleTicket_RedeemError(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -556,7 +556,7 @@ func TestRedeemWinningTicket_SingleTicket_RedeemError(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_SingleTicket_CheckTxError(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -582,7 +582,7 @@ func TestRedeemWinningTicket_SingleTicket_CheckTxError(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_SingleTicket(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -611,7 +611,7 @@ func TestRedeemWinningTicket_SingleTicket(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_MaxFloatError(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 
 	ts := newStubTicketStore()
@@ -628,7 +628,7 @@ func TestRedeemWinningTicket_MaxFloatError(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_InsufficientMaxFloat_QueueTicket(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -654,7 +654,7 @@ func TestRedeemWinningTicket_InsufficientMaxFloat_QueueTicket(t *testing.T) {
 }
 
 func TestRedeemWinningTicket_addFloatError(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	smgr.info[addr] = &SenderInfo{
 		Deposit:       big.NewInt(500),
@@ -682,7 +682,7 @@ func TestRedeemWinningTicket_addFloatError(t *testing.T) {
 }
 
 func TestMonitorMaxFloat(t *testing.T) {
-	claimant, b, smgr, tm := LocalSenderMonitorFixture()
+	claimant, b, smgr, tm := localSenderMonitorFixture()
 	addr := RandAddress()
 	initialReserve := big.NewInt(500)
 	smgr.info[addr] = &SenderInfo{
@@ -720,7 +720,7 @@ func TestMonitorMaxFloat(t *testing.T) {
 	assert.Equal(newMaxFloat, mfu)
 }
 
-func LocalSenderMonitorFixture() (ethcommon.Address, *stubBroker, *stubSenderManager, *stubTimeManager) {
+func localSenderMonitorFixture() (ethcommon.Address, *stubBroker, *stubSenderManager, *stubTimeManager) {
 	claimant := RandAddress()
 	b := newStubBroker()
 	smgr := newStubSenderManager()
