@@ -7,6 +7,7 @@ import (
 
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/event"
 	"github.com/golang/glog"
 	"github.com/livepeer/go-livepeer/eth"
 	"github.com/livepeer/go-livepeer/eth/blockwatch"
@@ -24,6 +25,10 @@ type SenderWatcher struct {
 	tw             timeWatcher
 	lpEth          eth.LivepeerEthClient
 	dec            *EventDecoder
+
+	// subscriptions
+	senderInfoFeed  event.Feed
+	senderInfoScope event.SubscriptionScope
 }
 
 // NewSenderWatcher initiates a new SenderWatcher
@@ -126,6 +131,11 @@ func (sw *SenderWatcher) Clear(addr ethcommon.Address) {
 	if _, ok := sw.claimedReserve[addr]; ok {
 		delete(sw.claimedReserve, addr)
 	}
+}
+
+// SubscribeSenderInfoChange notifies subscribers when the sender info for a particular sender changes
+func (sw *SenderWatcher) SubscribeSenderInfoChange(sink chan<- ethcommon.Address) event.Subscription {
+	return sw.senderInfoScope.Track(sw.senderInfoFeed.Subscribe(sink))
 }
 
 func (sw *SenderWatcher) handleBlockEvents(events []*blockwatch.Event) {

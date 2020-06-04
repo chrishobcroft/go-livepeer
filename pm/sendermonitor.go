@@ -112,20 +112,16 @@ func (sm *LocalSenderMonitor) addFloat(addr ethcommon.Address, amount *big.Int) 
 	// Subtracting from pendingAmount = adding to max float
 	pendingAmount := sm.senders[addr].pendingAmount
 	if pendingAmount.Cmp(amount) < 0 {
-		return errors.New("cannot subtract from insufficient pendingAmount")
+		glog.Error(errors.New("cannot subtract from insufficient pendingAmount"))
 	}
 
 	sm.senders[addr].pendingAmount.Sub(pendingAmount, amount)
-	mf, err := sm.maxFloat(addr)
-	if err != nil {
-		return err
-	}
-	sm.senders[addr].subFeed.Send(mf)
+	sm.sendMaxFloatChange(addr)
 	return nil
 }
 
 // subFloat subtracts from a remote sender's max float
-func (sm *LocalSenderMonitor) subFloat(addr ethcommon.Address, amount *big.Int) error {
+func (sm *LocalSenderMonitor) subFloat(addr ethcommon.Address, amount *big.Int) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
@@ -134,12 +130,7 @@ func (sm *LocalSenderMonitor) subFloat(addr ethcommon.Address, amount *big.Int) 
 	// Adding to pendingAmount = subtracting from max float
 	pendingAmount := sm.senders[addr].pendingAmount
 	sm.senders[addr].pendingAmount.Add(pendingAmount, amount)
-	mf, err := sm.maxFloat(addr)
-	if err != nil {
-		return err
-	}
-	sm.senders[addr].subFeed.Send(mf)
-	return nil
+	sm.sendMaxFloatChange(addr)
 }
 
 // MaxFloat returns a remote sender's max float
@@ -287,45 +278,33 @@ func (sm *LocalSenderMonitor) cleanup() {
 	}
 }
 
-func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnErr error) {
+func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) error {
 	maxFloat, err := sm.MaxFloat(ticket.Ticket.Sender)
 	if err != nil {
-		returnErr = err
-		return
+		return err
 	}
 
 	// if max float is zero, there is no claimable reserve left or reserve is 0
 	if maxFloat.Cmp(big.NewInt(0)) <= 0 {
 		if err := sm.QueueTicket(ticket); err != nil {
-			returnErr = err
-			return
+			return err
 		}
-		returnErr = errors.Errorf("max float is zero")
-		return
+		return errors.New("max float is 0")
 	}
 
 	// If max float is insufficient to cover the ticket face value, queue
 	// the ticket to be retried later
 	if maxFloat.Cmp(ticket.Ticket.FaceValue) < 0 {
 		if err := sm.QueueTicket(ticket); err != nil {
-			returnErr = err
-			return
+			return err
 		}
-		returnErr = fmt.Errorf("insufficient max float sender=%v faceValue=%v maxFloat=%v", ticket.Ticket.Sender.Hex(), ticket.Ticket.FaceValue, maxFloat)
-		return
+		return fmt.Errorf("insufficient max float sender=%v faceValue=%v maxFloat=%v", ticket.Ticket.Sender.Hex(), ticket.Ticket.FaceValue, maxFloat)
 	}
 
 	// Subtract the ticket face value from the sender's current max float
 	// This amount will be considered pending until the ticket redemption
 	// transaction confirms on-chain
-	if subErr := sm.subFloat(ticket.Ticket.Sender, ticket.Ticket.FaceValue); subErr != nil {
-		if err := sm.QueueTicket(ticket); err != nil {
-			returnErr = err
-			return
-		}
-		err = subErr
-		return
-	}
+	sm.subFloat(ticket.Ticket.Sender, ticket.Ticket.FaceValue)
 
 	defer func() {
 		// Add the ticket face value back to the sender's current max float
@@ -338,8 +317,7 @@ func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnE
 		// the case where the ticket was not redeemd for its full face value
 		// because the reserve was insufficient
 		if err := sm.addFloat(ticket.Ticket.Sender, ticket.Ticket.FaceValue); err != nil {
-			returnErr = err
-			return
+			glog.Error(errors.Wrap(err, "error adding to max float"))
 		}
 	}()
 
@@ -350,8 +328,7 @@ func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnE
 		if monitor.Enabled {
 			monitor.TicketRedemptionError(ticket.Ticket.Sender.String())
 		}
-		returnErr = err
-		return
+		return err
 	}
 
 	// Wait for transaction to confirm
@@ -359,9 +336,7 @@ func (sm *LocalSenderMonitor) redeemWinningTicket(ticket *SignedTicket) (returnE
 		if monitor.Enabled {
 			monitor.TicketRedemptionError(ticket.Ticket.Sender.String())
 		}
-
-		returnErr = err
-		return
+		return err
 	}
 
 	if monitor.Enabled {
