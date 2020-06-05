@@ -410,16 +410,23 @@ func TestRedeemerClient_QueueTicket_RPCErr(t *testing.T) {
 	}
 
 	ticket := &net.Ticket{
-		Recipient:              pm.RandAddress().Bytes(),
-		Sender:                 pm.RandAddress().Bytes(),
-		FaceValue:              big.NewInt(100).Bytes(),
-		WinProb:                big.NewInt(100).Bytes(),
-		SenderNonce:            1,
-		CreationRound:          100,
-		CreationRoundBlockHash: pm.RandHash().Bytes(),
-		Sig:                    pm.RandBytes(32),
-		RecipientRand:          big.NewInt(1337).Bytes(),
-		ParamsExpirationBlock:  100,
+		Sender:        pm.RandAddress().Bytes(),
+		RecipientRand: big.NewInt(1337).Bytes(),
+		TicketParams: &net.TicketParams{
+			Recipient:         pm.RandAddress().Bytes(),
+			FaceValue:         big.NewInt(100).Bytes(),
+			WinProb:           big.NewInt(100).Bytes(),
+			RecipientRandHash: pm.RandBytes(32),
+			ExpirationBlock:   big.NewInt(100).Bytes(),
+		},
+		SenderParams: &net.TicketSenderParams{
+			Sig:         pm.RandBytes(32),
+			SenderNonce: 1,
+		},
+		ExpirationParams: &net.TicketExpirationParams{
+			CreationRound:          100,
+			CreationRoundBlockHash: pm.RandHash().Bytes(),
+		},
 	}
 
 	rpc.EXPECT().QueueTicket(gomock.Any(), gomock.Any()).Return(nil, errors.New("QueueTicket error"))
@@ -441,16 +448,23 @@ func TestRedeemerClient_QueueTicket_Success(t *testing.T) {
 	}
 
 	ticket := &net.Ticket{
-		Recipient:              pm.RandAddress().Bytes(),
-		Sender:                 pm.RandAddress().Bytes(),
-		FaceValue:              big.NewInt(100).Bytes(),
-		WinProb:                big.NewInt(100).Bytes(),
-		SenderNonce:            1,
-		CreationRound:          100,
-		CreationRoundBlockHash: pm.RandHash().Bytes(),
-		Sig:                    pm.RandBytes(32),
-		RecipientRand:          big.NewInt(1337).Bytes(),
-		ParamsExpirationBlock:  100,
+		Sender:        pm.RandAddress().Bytes(),
+		RecipientRand: big.NewInt(1337).Bytes(),
+		TicketParams: &net.TicketParams{
+			Recipient:         pm.RandAddress().Bytes(),
+			FaceValue:         big.NewInt(100).Bytes(),
+			WinProb:           big.NewInt(100).Bytes(),
+			RecipientRandHash: pm.RandBytes(32),
+			ExpirationBlock:   big.NewInt(100).Bytes(),
+		},
+		SenderParams: &net.TicketSenderParams{
+			Sig:         pm.RandBytes(32),
+			SenderNonce: 1,
+		},
+		ExpirationParams: &net.TicketExpirationParams{
+			CreationRound:          100,
+			CreationRoundBlockHash: pm.RandHash().Bytes(),
+		},
 	}
 
 	rpc.EXPECT().QueueTicket(gomock.Any(), gomock.Any()).Return(nil, nil)

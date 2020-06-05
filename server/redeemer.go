@@ -296,7 +296,7 @@ func (r *RedeemerClient) SubscribeMaxFloat(sender ethcommon.Address, sink chan<-
 }
 
 func (r *RedeemerClient) monitorMaxFloat(ctx context.Context) {
-	stream, err := r.rpc.MonitorMaxFloat(ctx, &empty.Empty{})
+	stream, err := r.rpc.MonitorMaxFloat(ctx, &net.MonitorMaxFloatReq{})
 	if err != nil {
 		glog.Errorf("Unable to get MonitorMaxFloat stream")
 		return
