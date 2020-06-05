@@ -28,6 +28,8 @@ import (
 var cleanupLoopTime = 1 * time.Hour
 
 type Redeemer struct {
+	server *grpc.Server
+
 	recipient   ethcommon.Address
 	subs        sync.Map
 	eth         eth.LivepeerEthClient
@@ -73,7 +75,7 @@ func (r *Redeemer) Start(host *url.URL) error {
 	opts := []grpc.ServerOption{}
 	// var s *grpc.Server
 	s := grpc.NewServer(opts...)
-	defer s.Stop()
+	r.server = s
 
 	net.RegisterTicketRedeemerServer(s, r)
 
@@ -84,6 +86,7 @@ func (r *Redeemer) Start(host *url.URL) error {
 
 func (r *Redeemer) Stop() {
 	close(r.quit)
+	r.server.Stop()
 }
 
 func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*net.QueueTicketRes, error) {
