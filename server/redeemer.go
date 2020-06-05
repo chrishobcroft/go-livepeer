@@ -16,7 +16,6 @@ import (
 	ethcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/livepeer/go-livepeer/eth"
 	"github.com/livepeer/go-livepeer/net"
 	"github.com/livepeer/go-livepeer/pm"
@@ -87,7 +86,7 @@ func (r *Redeemer) Stop() {
 	close(r.quit)
 }
 
-func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*empty.Empty, error) {
+func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*net.QueueTicketRes, error) {
 	t := pmTicket(ticket)
 	if err := r.sm.QueueTicket(t); err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
@@ -95,7 +94,7 @@ func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*empty.
 	glog.Infof("ticket queued sender=0x%x", ticket.Sender)
 
 	go r.monitorMaxFloat(ethcommon.BytesToAddress(ticket.Sender))
-	return &empty.Empty{}, nil
+	return &net.QueueTicketRes{}, nil
 }
 
 func (r *Redeemer) monitorMaxFloat(sender ethcommon.Address) {
@@ -137,7 +136,7 @@ func (r *Redeemer) sendMaxFloatUpdate(sender ethcommon.Address, maxFloat *big.In
 	)
 }
 
-func (r *Redeemer) MonitorMaxFloat(req *empty.Empty, stream net.TicketRedeemer_MonitorMaxFloatServer) error {
+func (r *Redeemer) MonitorMaxFloat(req *net.MonitorMaxFloatReq, stream net.TicketRedeemer_MonitorMaxFloatServer) error {
 	// The client address will serve as the ID for the stream
 	p, ok := peer.FromContext(stream.Context())
 	if !ok {
@@ -178,7 +177,7 @@ func (r *Redeemer) MonitorMaxFloat(req *empty.Empty, stream net.TicketRedeemer_M
 	}
 }
 
-func (r *Redeemer) MaxFloat(ctx context.Context, req *net.MaxFloatRequest) (*net.MaxFloatUpdate, error) {
+func (r *Redeemer) MaxFloat(ctx context.Context, req *net.MaxFloatReq) (*net.MaxFloatUpdate, error) {
 	mf, err := r.sm.MaxFloat(ethcommon.BytesToAddress(req.Sender))
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Errorf("max float error: %v", err).Error())
@@ -273,7 +272,7 @@ func (r *RedeemerClient) MaxFloat(sender ethcommon.Address) (*big.Int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), GRPCTimeout)
 	defer cancel()
 
-	mfu, err := r.rpc.MaxFloat(ctx, &net.MaxFloatRequest{Sender: sender.Bytes()})
+	mfu, err := r.rpc.MaxFloat(ctx, &net.MaxFloatReq{Sender: sender.Bytes()})
 	if err != nil {
 		return nil, err
 	}
@@ -360,32 +359,39 @@ func (r *RedeemerClient) startCleanupLoop() {
 func pmTicket(ticket *net.Ticket) *pm.SignedTicket {
 	return &pm.SignedTicket{
 		Ticket: &pm.Ticket{
-			Recipient:              ethcommon.BytesToAddress(ticket.Recipient),
+			Recipient:              ethcommon.BytesToAddress(ticket.TicketParams.Recipient),
 			Sender:                 ethcommon.BytesToAddress(ticket.Sender),
-			FaceValue:              new(big.Int).SetBytes(ticket.FaceValue),
-			WinProb:                new(big.Int).SetBytes(ticket.WinProb),
-			SenderNonce:            ticket.SenderNonce,
-			RecipientRandHash:      ethcommon.BytesToHash(ticket.RecipientRandHash),
-			CreationRound:          ticket.CreationRound,
-			CreationRoundBlockHash: ethcommon.BytesToHash(ticket.CreationRoundBlockHash),
-			ParamsExpirationBlock:  new(big.Int).SetInt64(ticket.ParamsExpirationBlock),
+			FaceValue:              new(big.Int).SetBytes(ticket.TicketParams.FaceValue),
+			WinProb:                new(big.Int).SetBytes(ticket.TicketParams.WinProb),
+			SenderNonce:            ticket.SenderParams.SenderNonce,
+			RecipientRandHash:      ethcommon.BytesToHash(ticket.TicketParams.RecipientRandHash),
+			CreationRound:          ticket.ExpirationParams.CreationRound,
+			CreationRoundBlockHash: ethcommon.BytesToHash(ticket.ExpirationParams.CreationRoundBlockHash),
+			ParamsExpirationBlock:  new(big.Int).SetBytes(ticket.TicketParams.ExpirationBlock),
 		},
 		RecipientRand: new(big.Int).SetBytes(ticket.RecipientRand),
-		Sig:           ticket.Sig,
+		Sig:           ticket.SenderParams.Sig,
 	}
 }
 
 func protoTicket(ticket *pm.SignedTicket) *net.Ticket {
 	return &net.Ticket{
-		Recipient:              ticket.Recipient.Bytes(),
-		Sender:                 ticket.Sender.Bytes(),
-		FaceValue:              ticket.FaceValue.Bytes(),
-		WinProb:                ticket.WinProb.Bytes(),
-		SenderNonce:            ticket.SenderNonce,
-		CreationRound:          ticket.CreationRound,
-		CreationRoundBlockHash: ticket.CreationRoundBlockHash.Bytes(),
-		Sig:                    ticket.Sig,
-		RecipientRand:          ticket.Recipient.Bytes(),
-		ParamsExpirationBlock:  ticket.ParamsExpirationBlock.Int64(),
+		Sender:        ticket.Sender.Bytes(),
+		RecipientRand: ticket.Recipient.Bytes(),
+		TicketParams: &net.TicketParams{
+			Recipient:         ticket.Recipient.Bytes(),
+			FaceValue:         ticket.FaceValue.Bytes(),
+			WinProb:           ticket.WinProb.Bytes(),
+			RecipientRandHash: ticket.RecipientRandHash.Bytes(),
+			ExpirationBlock:   ticket.ParamsExpirationBlock.Bytes(),
+		},
+		SenderParams: &net.TicketSenderParams{
+			SenderNonce: ticket.SenderNonce,
+			Sig:         ticket.Sig,
+		},
+		ExpirationParams: &net.TicketExpirationParams{
+			CreationRound:          ticket.CreationRound,
+			CreationRoundBlockHash: ticket.CreationRoundBlockHash.Bytes(),
+		},
 	}
 }

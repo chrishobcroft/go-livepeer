@@ -15,7 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/event"
 	"github.com/golang/glog"
 	"github.com/golang/mock/gomock"
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/livepeer/go-livepeer/eth"
 	"github.com/livepeer/go-livepeer/net"
 	"github.com/livepeer/go-livepeer/pm"
@@ -62,16 +61,23 @@ func TestRedeemerServer_QueueTicket(t *testing.T) {
 	require.Nil(err)
 
 	ticket := &net.Ticket{
-		Recipient:              recipient.Bytes(),
-		Sender:                 pm.RandAddress().Bytes(),
-		FaceValue:              big.NewInt(100).Bytes(),
-		WinProb:                big.NewInt(100).Bytes(),
-		SenderNonce:            1,
-		CreationRound:          100,
-		CreationRoundBlockHash: pm.RandHash().Bytes(),
-		Sig:                    pm.RandBytes(32),
-		RecipientRand:          big.NewInt(1337).Bytes(),
-		ParamsExpirationBlock:  100,
+		Sender:        pm.RandAddress().Bytes(),
+		RecipientRand: big.NewInt(1337).Bytes(),
+		TicketParams: &net.TicketParams{
+			Recipient:         recipient.Bytes(),
+			FaceValue:         big.NewInt(100).Bytes(),
+			WinProb:           big.NewInt(100).Bytes(),
+			RecipientRandHash: pm.RandBytes(32),
+			ExpirationBlock:   big.NewInt(100).Bytes(),
+		},
+		SenderParams: &net.TicketSenderParams{
+			Sig:         pm.RandBytes(32),
+			SenderNonce: 1,
+		},
+		ExpirationParams: &net.TicketExpirationParams{
+			CreationRound:          100,
+			CreationRoundBlockHash: pm.RandHash().Bytes(),
+		},
 	}
 
 	sm.shouldFail = errors.New("QueueTicket error")
@@ -82,7 +88,7 @@ func TestRedeemerServer_QueueTicket(t *testing.T) {
 
 	res, err = r.QueueTicket(context.Background(), ticket)
 	assert.Nil(err)
-	assert.Equal(res, &empty.Empty{})
+	assert.Equal(res, &net.QueueTicketRes{})
 	assert.Equal(sm.queued[0], pmTicket(ticket))
 
 	// check that monitorMaxFloat is called
@@ -114,7 +120,7 @@ func TestRedeemerServer_MonitorMaxFloat(t *testing.T) {
 	require.Equal(p.Addr.String(), stubPeer.Addr.String())
 
 	// Set up empty request
-	req := &empty.Empty{}
+	req := &net.MonitorMaxFloatReq{}
 
 	// Set up redeemer server
 	recipient := pm.RandAddress()
@@ -224,7 +230,7 @@ func TestRedeemerServer_MaxFloat(t *testing.T) {
 
 	// test error
 	sm.shouldFail = errors.New("max float error")
-	mf, err := r.MaxFloat(context.TODO(), &net.MaxFloatRequest{
+	mf, err := r.MaxFloat(context.TODO(), &net.MaxFloatReq{
 		Sender: sender,
 	})
 	assert.Nil(mf)
@@ -233,7 +239,7 @@ func TestRedeemerServer_MaxFloat(t *testing.T) {
 
 	// test success
 	sm.maxFloat = big.NewInt(100)
-	mf, err = r.MaxFloat(context.TODO(), &net.MaxFloatRequest{
+	mf, err = r.MaxFloat(context.TODO(), &net.MaxFloatReq{
 		Sender: sender,
 	})
 	assert.Nil(err)
