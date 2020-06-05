@@ -96,11 +96,11 @@ func (r *Redeemer) QueueTicket(ctx context.Context, ticket *net.Ticket) (*net.Qu
 	}
 	glog.Infof("ticket queued sender=0x%x", ticket.Sender)
 
-	go r.monitorMaxFloat(ethcommon.BytesToAddress(ticket.Sender))
+	go r.watchMaxFloatUpdate(ethcommon.BytesToAddress(ticket.Sender))
 	return &net.QueueTicketRes{}, nil
 }
 
-func (r *Redeemer) monitorMaxFloat(sender ethcommon.Address) {
+func (r *Redeemer) watchMaxFloatUpdate(sender ethcommon.Address) {
 	_, ok := r.liveSenders.Load(sender)
 	if ok {
 		// update last access
