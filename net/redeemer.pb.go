@@ -7,7 +7,6 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -25,39 +24,39 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type MaxFloatRequest struct {
+type MaxFloatReq struct {
 	Sender               []byte   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *MaxFloatRequest) Reset()         { *m = MaxFloatRequest{} }
-func (m *MaxFloatRequest) String() string { return proto.CompactTextString(m) }
-func (*MaxFloatRequest) ProtoMessage()    {}
-func (*MaxFloatRequest) Descriptor() ([]byte, []int) {
+func (m *MaxFloatReq) Reset()         { *m = MaxFloatReq{} }
+func (m *MaxFloatReq) String() string { return proto.CompactTextString(m) }
+func (*MaxFloatReq) ProtoMessage()    {}
+func (*MaxFloatReq) Descriptor() ([]byte, []int) {
 	return fileDescriptor_41a074e4ea0232f2, []int{0}
 }
 
-func (m *MaxFloatRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MaxFloatRequest.Unmarshal(m, b)
+func (m *MaxFloatReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MaxFloatReq.Unmarshal(m, b)
 }
-func (m *MaxFloatRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MaxFloatRequest.Marshal(b, m, deterministic)
+func (m *MaxFloatReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MaxFloatReq.Marshal(b, m, deterministic)
 }
-func (m *MaxFloatRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MaxFloatRequest.Merge(m, src)
+func (m *MaxFloatReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MaxFloatReq.Merge(m, src)
 }
-func (m *MaxFloatRequest) XXX_Size() int {
-	return xxx_messageInfo_MaxFloatRequest.Size(m)
+func (m *MaxFloatReq) XXX_Size() int {
+	return xxx_messageInfo_MaxFloatReq.Size(m)
 }
-func (m *MaxFloatRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_MaxFloatRequest.DiscardUnknown(m)
+func (m *MaxFloatReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_MaxFloatReq.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MaxFloatRequest proto.InternalMessageInfo
+var xxx_messageInfo_MaxFloatReq proto.InternalMessageInfo
 
-func (m *MaxFloatRequest) GetSender() []byte {
+func (m *MaxFloatReq) GetSender() []byte {
 	if m != nil {
 		return m.Sender
 	}
@@ -65,20 +64,14 @@ func (m *MaxFloatRequest) GetSender() []byte {
 }
 
 type Ticket struct {
-	Recipient              []byte   `protobuf:"bytes,1,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	Sender                 []byte   `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	FaceValue              []byte   `protobuf:"bytes,3,opt,name=face_value,json=faceValue,proto3" json:"face_value,omitempty"`
-	WinProb                []byte   `protobuf:"bytes,4,opt,name=win_prob,json=winProb,proto3" json:"win_prob,omitempty"`
-	SenderNonce            uint32   `protobuf:"varint,5,opt,name=sender_nonce,json=senderNonce,proto3" json:"sender_nonce,omitempty"`
-	RecipientRandHash      []byte   `protobuf:"bytes,6,opt,name=recipient_rand_hash,json=recipientRandHash,proto3" json:"recipient_rand_hash,omitempty"`
-	CreationRound          int64    `protobuf:"varint,7,opt,name=creation_round,json=creationRound,proto3" json:"creation_round,omitempty"`
-	CreationRoundBlockHash []byte   `protobuf:"bytes,8,opt,name=creation_round_block_hash,json=creationRoundBlockHash,proto3" json:"creation_round_block_hash,omitempty"`
-	Sig                    []byte   `protobuf:"bytes,9,opt,name=sig,proto3" json:"sig,omitempty"`
-	RecipientRand          []byte   `protobuf:"bytes,10,opt,name=recipient_rand,json=recipientRand,proto3" json:"recipient_rand,omitempty"`
-	ParamsExpirationBlock  int64    `protobuf:"varint,11,opt,name=params_expiration_block,json=paramsExpirationBlock,proto3" json:"params_expiration_block,omitempty"`
-	XXX_NoUnkeyedLiteral   struct{} `json:"-"`
-	XXX_unrecognized       []byte   `json:"-"`
-	XXX_sizecache          int32    `json:"-"`
+	TicketParams         *TicketParams           `protobuf:"bytes,1,opt,name=ticket_params,json=ticketParams,proto3" json:"ticket_params,omitempty"`
+	Sender               []byte                  `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
+	ExpirationParams     *TicketExpirationParams `protobuf:"bytes,3,opt,name=expiration_params,json=expirationParams,proto3" json:"expiration_params,omitempty"`
+	SenderParams         *TicketSenderParams     `protobuf:"bytes,4,opt,name=sender_params,json=senderParams,proto3" json:"sender_params,omitempty"`
+	RecipientRand        []byte                  `protobuf:"bytes,5,opt,name=recipient_rand,json=recipientRand,proto3" json:"recipient_rand,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *Ticket) Reset()         { *m = Ticket{} }
@@ -106,9 +99,9 @@ func (m *Ticket) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Ticket proto.InternalMessageInfo
 
-func (m *Ticket) GetRecipient() []byte {
+func (m *Ticket) GetTicketParams() *TicketParams {
 	if m != nil {
-		return m.Recipient
+		return m.TicketParams
 	}
 	return nil
 }
@@ -120,51 +113,16 @@ func (m *Ticket) GetSender() []byte {
 	return nil
 }
 
-func (m *Ticket) GetFaceValue() []byte {
+func (m *Ticket) GetExpirationParams() *TicketExpirationParams {
 	if m != nil {
-		return m.FaceValue
+		return m.ExpirationParams
 	}
 	return nil
 }
 
-func (m *Ticket) GetWinProb() []byte {
+func (m *Ticket) GetSenderParams() *TicketSenderParams {
 	if m != nil {
-		return m.WinProb
-	}
-	return nil
-}
-
-func (m *Ticket) GetSenderNonce() uint32 {
-	if m != nil {
-		return m.SenderNonce
-	}
-	return 0
-}
-
-func (m *Ticket) GetRecipientRandHash() []byte {
-	if m != nil {
-		return m.RecipientRandHash
-	}
-	return nil
-}
-
-func (m *Ticket) GetCreationRound() int64 {
-	if m != nil {
-		return m.CreationRound
-	}
-	return 0
-}
-
-func (m *Ticket) GetCreationRoundBlockHash() []byte {
-	if m != nil {
-		return m.CreationRoundBlockHash
-	}
-	return nil
-}
-
-func (m *Ticket) GetSig() []byte {
-	if m != nil {
-		return m.Sig
+		return m.SenderParams
 	}
 	return nil
 }
@@ -176,12 +134,67 @@ func (m *Ticket) GetRecipientRand() []byte {
 	return nil
 }
 
-func (m *Ticket) GetParamsExpirationBlock() int64 {
-	if m != nil {
-		return m.ParamsExpirationBlock
-	}
-	return 0
+type QueueTicketRes struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
+
+func (m *QueueTicketRes) Reset()         { *m = QueueTicketRes{} }
+func (m *QueueTicketRes) String() string { return proto.CompactTextString(m) }
+func (*QueueTicketRes) ProtoMessage()    {}
+func (*QueueTicketRes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41a074e4ea0232f2, []int{2}
+}
+
+func (m *QueueTicketRes) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_QueueTicketRes.Unmarshal(m, b)
+}
+func (m *QueueTicketRes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_QueueTicketRes.Marshal(b, m, deterministic)
+}
+func (m *QueueTicketRes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueueTicketRes.Merge(m, src)
+}
+func (m *QueueTicketRes) XXX_Size() int {
+	return xxx_messageInfo_QueueTicketRes.Size(m)
+}
+func (m *QueueTicketRes) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueueTicketRes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueueTicketRes proto.InternalMessageInfo
+
+type MonitorMaxFloatReq struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *MonitorMaxFloatReq) Reset()         { *m = MonitorMaxFloatReq{} }
+func (m *MonitorMaxFloatReq) String() string { return proto.CompactTextString(m) }
+func (*MonitorMaxFloatReq) ProtoMessage()    {}
+func (*MonitorMaxFloatReq) Descriptor() ([]byte, []int) {
+	return fileDescriptor_41a074e4ea0232f2, []int{3}
+}
+
+func (m *MonitorMaxFloatReq) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MonitorMaxFloatReq.Unmarshal(m, b)
+}
+func (m *MonitorMaxFloatReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MonitorMaxFloatReq.Marshal(b, m, deterministic)
+}
+func (m *MonitorMaxFloatReq) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MonitorMaxFloatReq.Merge(m, src)
+}
+func (m *MonitorMaxFloatReq) XXX_Size() int {
+	return xxx_messageInfo_MonitorMaxFloatReq.Size(m)
+}
+func (m *MonitorMaxFloatReq) XXX_DiscardUnknown() {
+	xxx_messageInfo_MonitorMaxFloatReq.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MonitorMaxFloatReq proto.InternalMessageInfo
 
 type MaxFloatUpdate struct {
 	Sender               []byte   `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
@@ -195,7 +208,7 @@ func (m *MaxFloatUpdate) Reset()         { *m = MaxFloatUpdate{} }
 func (m *MaxFloatUpdate) String() string { return proto.CompactTextString(m) }
 func (*MaxFloatUpdate) ProtoMessage()    {}
 func (*MaxFloatUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_41a074e4ea0232f2, []int{2}
+	return fileDescriptor_41a074e4ea0232f2, []int{4}
 }
 
 func (m *MaxFloatUpdate) XXX_Unmarshal(b []byte) error {
@@ -231,43 +244,38 @@ func (m *MaxFloatUpdate) GetMaxFloat() []byte {
 }
 
 func init() {
-	proto.RegisterType((*MaxFloatRequest)(nil), "net.MaxFloatRequest")
+	proto.RegisterType((*MaxFloatReq)(nil), "net.MaxFloatReq")
 	proto.RegisterType((*Ticket)(nil), "net.Ticket")
+	proto.RegisterType((*QueueTicketRes)(nil), "net.QueueTicketRes")
+	proto.RegisterType((*MonitorMaxFloatReq)(nil), "net.MonitorMaxFloatReq")
 	proto.RegisterType((*MaxFloatUpdate)(nil), "net.MaxFloatUpdate")
 }
 
 func init() { proto.RegisterFile("net/redeemer.proto", fileDescriptor_41a074e4ea0232f2) }
 
 var fileDescriptor_41a074e4ea0232f2 = []byte{
-	// 439 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x52, 0xd1, 0x6e, 0xd3, 0x30,
-	0x14, 0x5d, 0x08, 0x74, 0xed, 0xed, 0xda, 0x81, 0x07, 0xc5, 0xeb, 0x40, 0x2a, 0x91, 0x90, 0xca,
-	0x4b, 0x8a, 0x00, 0x81, 0x78, 0x9d, 0x54, 0xc4, 0xcb, 0x10, 0x44, 0xc0, 0xab, 0xe5, 0x24, 0xb7,
-	0xad, 0xb5, 0xc6, 0x0e, 0x8e, 0xc3, 0xca, 0xcf, 0xf0, 0x33, 0xfc, 0x18, 0xb2, 0x9d, 0x86, 0x05,
-	0xa9, 0x6f, 0xf6, 0x39, 0xe7, 0x9e, 0x73, 0xa4, 0x7b, 0x81, 0x48, 0x34, 0x0b, 0x8d, 0x39, 0x62,
-	0x81, 0x3a, 0x2e, 0xb5, 0x32, 0x8a, 0x84, 0x12, 0xcd, 0xf4, 0x62, 0xad, 0xd4, 0x7a, 0x8b, 0x0b,
-	0x07, 0xa5, 0xf5, 0x6a, 0x81, 0x45, 0x69, 0x7e, 0x79, 0x45, 0xf4, 0x02, 0x4e, 0xaf, 0xf8, 0xee,
-	0xc3, 0x56, 0x71, 0x93, 0xe0, 0x8f, 0x1a, 0x2b, 0x43, 0x26, 0xd0, 0xab, 0x50, 0xe6, 0xa8, 0x69,
-	0x30, 0x0b, 0xe6, 0x27, 0x49, 0xf3, 0x8b, 0x7e, 0x87, 0xd0, 0xfb, 0x2a, 0xb2, 0x6b, 0x34, 0xe4,
-	0x09, 0x0c, 0x34, 0x66, 0xa2, 0x14, 0x28, 0x4d, 0xa3, 0xfa, 0x07, 0xdc, 0x32, 0xb8, 0x73, 0xdb,
-	0x80, 0x3c, 0x05, 0x58, 0xf1, 0x0c, 0xd9, 0x4f, 0xbe, 0xad, 0x91, 0x86, 0x7e, 0xcc, 0x22, 0xdf,
-	0x2d, 0x40, 0xce, 0xa1, 0x7f, 0x23, 0x24, 0x2b, 0xb5, 0x4a, 0xe9, 0x5d, 0x47, 0x1e, 0xdf, 0x08,
-	0xf9, 0x59, 0xab, 0x94, 0x3c, 0x83, 0x13, 0xef, 0xc1, 0xa4, 0x92, 0x19, 0xd2, 0x7b, 0xb3, 0x60,
-	0x3e, 0x4a, 0x86, 0x1e, 0xfb, 0x64, 0x21, 0x12, 0xc3, 0x59, 0xdb, 0x80, 0x69, 0x2e, 0x73, 0xb6,
-	0xe1, 0xd5, 0x86, 0xf6, 0x9c, 0xd1, 0x83, 0x96, 0x4a, 0xb8, 0xcc, 0x3f, 0xf2, 0x6a, 0x43, 0x9e,
-	0xc3, 0x38, 0xd3, 0xc8, 0x8d, 0x50, 0x92, 0x69, 0x55, 0xcb, 0x9c, 0x1e, 0xcf, 0x82, 0x79, 0x98,
-	0x8c, 0xf6, 0x68, 0x62, 0x41, 0xf2, 0x1e, 0xce, 0xbb, 0x32, 0x96, 0x6e, 0x55, 0x76, 0xed, 0xcd,
-	0xfb, 0xce, 0x7c, 0xd2, 0x99, 0xb8, 0xb4, 0xb4, 0x4b, 0xb8, 0x0f, 0x61, 0x25, 0xd6, 0x74, 0xe0,
-	0x44, 0xf6, 0x69, 0x33, 0xbb, 0x1d, 0x29, 0x38, 0x72, 0xd4, 0xa9, 0x47, 0xde, 0xc2, 0xe3, 0x92,
-	0x6b, 0x5e, 0x54, 0x0c, 0x77, 0xa5, 0xd0, 0x3e, 0xdc, 0xc5, 0xd2, 0xa1, 0xeb, 0xf8, 0xc8, 0xd3,
-	0xcb, 0x96, 0x75, 0xa1, 0xd1, 0x12, 0xc6, 0xfb, 0x5d, 0x7e, 0x2b, 0x73, 0x6e, 0xf0, 0xd0, 0x2a,
-	0xc9, 0x05, 0x0c, 0x0a, 0xbe, 0x63, 0x2b, 0x2b, 0x6d, 0x96, 0xd4, 0x2f, 0x9a, 0xd1, 0x57, 0x7f,
-	0x02, 0x18, 0xfb, 0x3d, 0x27, 0xcd, 0x35, 0x91, 0x37, 0x30, 0xfc, 0x52, 0x63, 0x8d, 0xcd, 0xfa,
-	0x87, 0xb1, 0x44, 0x13, 0xfb, 0xcf, 0x74, 0x12, 0xfb, 0xfb, 0x8a, 0xf7, 0xf7, 0x15, 0x2f, 0xed,
-	0x7d, 0x45, 0x47, 0xe4, 0x1d, 0xf4, 0xf7, 0x7d, 0xc8, 0x43, 0x37, 0xf2, 0xdf, 0xa9, 0x4d, 0xcf,
-	0x3a, 0xa8, 0x2f, 0x1d, 0x1d, 0x91, 0x4b, 0x38, 0xbd, 0x52, 0x52, 0x18, 0xa5, 0xdb, 0xf9, 0x03,
-	0x29, 0x07, 0x1c, 0x5e, 0x06, 0x69, 0xcf, 0x09, 0x5f, 0xff, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x87,
-	0x45, 0xb4, 0xe4, 0x17, 0x03, 0x00, 0x00,
+	// 333 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xc1, 0x4e, 0xc2, 0x40,
+	0x10, 0x86, 0x29, 0x28, 0xc1, 0x29, 0xd4, 0x32, 0x1a, 0x25, 0x70, 0x31, 0x4d, 0x48, 0x3c, 0xa1,
+	0x42, 0xe2, 0xc9, 0x9b, 0xc1, 0x78, 0x21, 0xd1, 0xaa, 0xe7, 0x66, 0xa5, 0x63, 0xd2, 0x48, 0xb7,
+	0xeb, 0x76, 0x48, 0x78, 0x03, 0x9f, 0xca, 0x77, 0x33, 0x6c, 0x5b, 0xb2, 0xd6, 0x70, 0xeb, 0x3f,
+	0xf3, 0xcf, 0xd7, 0x7f, 0xa6, 0x05, 0x94, 0xc4, 0x57, 0x9a, 0x62, 0xa2, 0x94, 0xf4, 0x44, 0xe9,
+	0x8c, 0x33, 0x6c, 0x49, 0xe2, 0xa1, 0xbf, 0x6d, 0xac, 0x54, 0xa4, 0xd5, 0xb2, 0x28, 0x07, 0x63,
+	0x70, 0x17, 0x62, 0xf3, 0xb0, 0xca, 0x04, 0x87, 0xf4, 0x85, 0x67, 0xd0, 0xce, 0x49, 0xc6, 0xa4,
+	0x07, 0xce, 0x85, 0x73, 0xd9, 0x0d, 0x4b, 0x15, 0x7c, 0x37, 0xa1, 0xfd, 0x9a, 0x2c, 0x3f, 0x89,
+	0xf1, 0x16, 0x7a, 0x6c, 0x9e, 0x22, 0x25, 0xb4, 0x48, 0x73, 0xe3, 0x74, 0xa7, 0xfd, 0x89, 0x24,
+	0x9e, 0x14, 0x9e, 0x27, 0xd3, 0x08, 0xbb, 0x6c, 0x29, 0x0b, 0xdd, 0xb4, 0xd1, 0xf8, 0x08, 0x7d,
+	0xda, 0xa8, 0x44, 0x0b, 0x4e, 0x32, 0x59, 0x31, 0x5b, 0x86, 0x39, 0xb2, 0x98, 0xf3, 0x9d, 0xa7,
+	0xa4, 0xfb, 0x54, 0xab, 0xe0, 0x1d, 0xf4, 0x0a, 0x66, 0x45, 0x39, 0x30, 0x94, 0x73, 0x8b, 0xf2,
+	0x62, 0xfa, 0x55, 0xbe, 0xdc, 0x52, 0x38, 0x06, 0x4f, 0xd3, 0x32, 0x51, 0x09, 0x49, 0x8e, 0xb4,
+	0x90, 0xf1, 0xe0, 0xd0, 0xe4, 0xec, 0xed, 0xaa, 0xa1, 0x90, 0x71, 0xe0, 0x83, 0xf7, 0xbc, 0xa6,
+	0x35, 0x15, 0xbc, 0x90, 0xf2, 0xe0, 0x14, 0x70, 0x91, 0xc9, 0x84, 0x33, 0x6d, 0x5d, 0x32, 0x98,
+	0x83, 0x57, 0xc9, 0x37, 0x15, 0x0b, 0xa6, 0x7d, 0xb7, 0xc5, 0x11, 0x1c, 0xa5, 0x62, 0x13, 0x7d,
+	0x6c, 0xad, 0xe5, 0x6d, 0x3a, 0x69, 0x39, 0x3a, 0xfd, 0x71, 0xc0, 0xab, 0x5e, 0x55, 0x7c, 0x4f,
+	0xbc, 0x01, 0xd7, 0x4a, 0x80, 0xae, 0xb5, 0xde, 0xf0, 0xc4, 0x88, 0x5a, 0xc0, 0x06, 0xce, 0xa0,
+	0x53, 0x85, 0x41, 0xdf, 0x58, 0xac, 0xa8, 0xe5, 0xd0, 0xdf, 0xb4, 0x41, 0x03, 0xef, 0xe1, 0xb8,
+	0xb6, 0x17, 0x16, 0xa7, 0xfc, 0xbf, 0xed, 0x1e, 0xc4, 0xb5, 0xf3, 0xde, 0x36, 0xbf, 0xd9, 0xec,
+	0x37, 0x00, 0x00, 0xff, 0xff, 0x15, 0x09, 0xc1, 0x0c, 0x93, 0x02, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -282,9 +290,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TicketRedeemerClient interface {
-	QueueTicket(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*empty.Empty, error)
-	MaxFloat(ctx context.Context, in *MaxFloatRequest, opts ...grpc.CallOption) (*MaxFloatUpdate, error)
-	MonitorMaxFloat(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (TicketRedeemer_MonitorMaxFloatClient, error)
+	QueueTicket(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*QueueTicketRes, error)
+	MaxFloat(ctx context.Context, in *MaxFloatReq, opts ...grpc.CallOption) (*MaxFloatUpdate, error)
+	MonitorMaxFloat(ctx context.Context, in *MonitorMaxFloatReq, opts ...grpc.CallOption) (TicketRedeemer_MonitorMaxFloatClient, error)
 }
 
 type ticketRedeemerClient struct {
@@ -295,8 +303,8 @@ func NewTicketRedeemerClient(cc *grpc.ClientConn) TicketRedeemerClient {
 	return &ticketRedeemerClient{cc}
 }
 
-func (c *ticketRedeemerClient) QueueTicket(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*empty.Empty, error) {
-	out := new(empty.Empty)
+func (c *ticketRedeemerClient) QueueTicket(ctx context.Context, in *Ticket, opts ...grpc.CallOption) (*QueueTicketRes, error) {
+	out := new(QueueTicketRes)
 	err := c.cc.Invoke(ctx, "/net.TicketRedeemer/QueueTicket", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -304,7 +312,7 @@ func (c *ticketRedeemerClient) QueueTicket(ctx context.Context, in *Ticket, opts
 	return out, nil
 }
 
-func (c *ticketRedeemerClient) MaxFloat(ctx context.Context, in *MaxFloatRequest, opts ...grpc.CallOption) (*MaxFloatUpdate, error) {
+func (c *ticketRedeemerClient) MaxFloat(ctx context.Context, in *MaxFloatReq, opts ...grpc.CallOption) (*MaxFloatUpdate, error) {
 	out := new(MaxFloatUpdate)
 	err := c.cc.Invoke(ctx, "/net.TicketRedeemer/MaxFloat", in, out, opts...)
 	if err != nil {
@@ -313,7 +321,7 @@ func (c *ticketRedeemerClient) MaxFloat(ctx context.Context, in *MaxFloatRequest
 	return out, nil
 }
 
-func (c *ticketRedeemerClient) MonitorMaxFloat(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (TicketRedeemer_MonitorMaxFloatClient, error) {
+func (c *ticketRedeemerClient) MonitorMaxFloat(ctx context.Context, in *MonitorMaxFloatReq, opts ...grpc.CallOption) (TicketRedeemer_MonitorMaxFloatClient, error) {
 	stream, err := c.cc.NewStream(ctx, &_TicketRedeemer_serviceDesc.Streams[0], "/net.TicketRedeemer/MonitorMaxFloat", opts...)
 	if err != nil {
 		return nil, err
@@ -347,22 +355,22 @@ func (x *ticketRedeemerMonitorMaxFloatClient) Recv() (*MaxFloatUpdate, error) {
 
 // TicketRedeemerServer is the server API for TicketRedeemer service.
 type TicketRedeemerServer interface {
-	QueueTicket(context.Context, *Ticket) (*empty.Empty, error)
-	MaxFloat(context.Context, *MaxFloatRequest) (*MaxFloatUpdate, error)
-	MonitorMaxFloat(*empty.Empty, TicketRedeemer_MonitorMaxFloatServer) error
+	QueueTicket(context.Context, *Ticket) (*QueueTicketRes, error)
+	MaxFloat(context.Context, *MaxFloatReq) (*MaxFloatUpdate, error)
+	MonitorMaxFloat(*MonitorMaxFloatReq, TicketRedeemer_MonitorMaxFloatServer) error
 }
 
 // UnimplementedTicketRedeemerServer can be embedded to have forward compatible implementations.
 type UnimplementedTicketRedeemerServer struct {
 }
 
-func (*UnimplementedTicketRedeemerServer) QueueTicket(ctx context.Context, req *Ticket) (*empty.Empty, error) {
+func (*UnimplementedTicketRedeemerServer) QueueTicket(ctx context.Context, req *Ticket) (*QueueTicketRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method QueueTicket not implemented")
 }
-func (*UnimplementedTicketRedeemerServer) MaxFloat(ctx context.Context, req *MaxFloatRequest) (*MaxFloatUpdate, error) {
+func (*UnimplementedTicketRedeemerServer) MaxFloat(ctx context.Context, req *MaxFloatReq) (*MaxFloatUpdate, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MaxFloat not implemented")
 }
-func (*UnimplementedTicketRedeemerServer) MonitorMaxFloat(req *empty.Empty, srv TicketRedeemer_MonitorMaxFloatServer) error {
+func (*UnimplementedTicketRedeemerServer) MonitorMaxFloat(req *MonitorMaxFloatReq, srv TicketRedeemer_MonitorMaxFloatServer) error {
 	return status.Errorf(codes.Unimplemented, "method MonitorMaxFloat not implemented")
 }
 
@@ -389,7 +397,7 @@ func _TicketRedeemer_QueueTicket_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _TicketRedeemer_MaxFloat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MaxFloatRequest)
+	in := new(MaxFloatReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -401,13 +409,13 @@ func _TicketRedeemer_MaxFloat_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/net.TicketRedeemer/MaxFloat",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TicketRedeemerServer).MaxFloat(ctx, req.(*MaxFloatRequest))
+		return srv.(TicketRedeemerServer).MaxFloat(ctx, req.(*MaxFloatReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _TicketRedeemer_MonitorMaxFloat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(empty.Empty)
+	m := new(MonitorMaxFloatReq)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
