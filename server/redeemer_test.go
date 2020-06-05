@@ -319,7 +319,7 @@ func TestRedeemerClient_MonitorMaxFloat_StreamRecvErr(t *testing.T) {
 		}), quit: make(chan struct{}),
 	}
 	// clean up go routine
-	defer rc.Stop()
+	defer close(rc.quit)
 
 	ctx := context.TODO()
 	// stream.Recv error
@@ -382,7 +382,7 @@ func TestRedeemerClient_MonitorMaxFloat_UpdateMaxFloat(t *testing.T) {
 		}), quit: make(chan struct{}),
 	}
 	// clean up go routine
-	defer rc.Stop()
+	defer close(rc.quit)
 
 	ctx := context.TODO()
 	stream := net.NewMockTicketRedeemer_MonitorMaxFloatClient(ctrl)

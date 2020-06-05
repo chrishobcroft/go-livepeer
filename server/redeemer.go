@@ -210,7 +210,9 @@ func (r *Redeemer) startCleanupLoop() {
 }
 
 type RedeemerClient struct {
-	rpc     net.TicketRedeemerClient
+	conn *grpc.ClientConn
+	rpc  net.TicketRedeemerClient
+
 	senders map[ethcommon.Address]*struct {
 		maxFloat   *big.Int
 		lastAccess time.Time
@@ -223,7 +225,7 @@ type RedeemerClient struct {
 
 // NewRedeemerClient instantiates a new client for the ticket redemption service
 // The client implements the pm.SenderMonitor interface
-func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (*RedeemerClient, *grpc.ClientConn, error) {
+func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (*RedeemerClient, error) {
 	conn, err := grpc.Dial(
 		uri.String(),
 		grpc.WithBlock(),
@@ -234,18 +236,19 @@ func NewRedeemerClient(uri *url.URL, sm pm.SenderManager, tm pm.TimeManager) (*R
 	//TODO: PROVIDE KEEPALIVE SETTINGS
 	if err != nil {
 		glog.Errorf("Did not connect to orch=%v err=%v", uri, err)
-		return nil, nil, fmt.Errorf("Did not connect to orch=%v err=%v", uri, err)
+		return nil, fmt.Errorf("Did not connect to orch=%v err=%v", uri, err)
 	}
 	return &RedeemerClient{
-		rpc: net.NewTicketRedeemerClient(conn),
-		sm:  sm,
-		tm:  tm,
+		conn: conn,
+		rpc:  net.NewTicketRedeemerClient(conn),
+		sm:   sm,
+		tm:   tm,
 		senders: make(map[ethcommon.Address]*struct {
 			maxFloat   *big.Int
 			lastAccess time.Time
 		}),
 		quit: make(chan struct{}),
-	}, conn, nil
+	}, nil
 }
 
 func (r *RedeemerClient) Start() {
@@ -254,6 +257,7 @@ func (r *RedeemerClient) Start() {
 
 func (r *RedeemerClient) Stop() {
 	close(r.quit)
+	r.conn.Close()
 }
 
 func (r *RedeemerClient) QueueTicket(ticket *pm.SignedTicket) error {
