@@ -875,7 +875,7 @@ func (n *LivepeerNode) endTranscodingSession(sessionId string, logCtx context.Co
 	}
 	n.segmentMutex.Unlock()
 	if exists {
-		clog.V(common.DEBUG).Infof(logCtx, "Transcoding session ended by the Broadcaster for sessionID=%v", sessionId)
+		clog.V(common.DEBUG).Infof(logCtx, "Transcoding session ended by the Gateway for sessionID=%v", sessionId)
 	}
 }
 
