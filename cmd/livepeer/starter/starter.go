@@ -1094,11 +1094,11 @@ func StartLivepeer(ctx context.Context, cfg LivepeerConfig) {
 			// Fetch and cache broadcaster on-chain info
 			info, err := senderWatcher.GetSenderInfo(n.Eth.Account().Address)
 			if err != nil {
-				glog.Error("Failed to get broadcaster on-chain info: ", err)
+				glog.Error("Failed to get gateway on-chain info: ", err)
 				return
 			}
-			glog.Info("Broadcaster Deposit: ", eth.FormatUnits(info.Deposit, "ETH"))
-			glog.Info("Broadcaster Reserve: ", eth.FormatUnits(info.Reserve.FundsRemaining, "ETH"))
+			glog.Info("Gateway Deposit: ", eth.FormatUnits(info.Deposit, "ETH"))
+			glog.Info("Gateway Reserve: ", eth.FormatUnits(info.Reserve.FundsRemaining, "ETH"))
 
 			n.Sender = pm.NewSender(n.Eth, timeWatcher, senderWatcher, maxEV, maxTotalEV, *cfg.DepositMultiplier)
 
@@ -1128,8 +1128,8 @@ func StartLivepeer(ctx context.Context, cfg LivepeerConfig) {
 				}
 				server.BroadcastCfg.SetMaxPrice(autoPrice)
 			} else {
-				glog.Infof("Maximum transcoding price per pixel is not greater than 0: %v, broadcaster is currently set to accept ANY price.\n", *cfg.MaxPricePerUnit)
-				glog.Infoln("To update the broadcaster's maximum acceptable transcoding price per pixel, use the CLI or restart the broadcaster with the appropriate 'maxPricePerUnit' and 'pixelsPerUnit' values")
+				glog.Infof("Maximum transcoding price per pixel is not greater than 0: %v, gateway is currently set to accept ANY price.\n", *cfg.MaxPricePerUnit)
+				glog.Infoln("To update the gateway's maximum acceptable transcoding price per pixel, use the CLI or restart the gateway with the appropriate 'maxPricePerUnit' and 'pixelsPerUnit' values")
 			}
 
 			if *cfg.MaxPricePerCapability != "" {
